@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<document>
+
+  <properties>
+    <author email="www@seis.sc.edu">Philip Crotwell</author>  
+                <title>Fissures Mail Lists</title>
+  </properties>
+
+    <body>        
+              <section name="Mailing Lists">
+
+
+      <p>
+	If you have suggestions, please send them to 
+	fissures-dev@iris.washington.edu. This is a majordomo email 
+	list that you should subscribe to. Send an email 
+	to <a href="mailto:majordomo@iris.washington.edu">
+	  majordomo@iris.washington.edu</a> with
+</p>
+<p>
+
+              subscribe fissures-dev<br/>
+              end<br/>
+</p>
+<p>
+              in the body</p>
+      <p>
+          Please remember that if you send an email to fissures-dev, 
+          it goes to <b>everyone</b> on the list. So if you are trying to
+          subscribe or unsubscribe you should send the email to
+          <a href="mailto:majordomo@iris.washington.edu">
+	    majordomo@iris.washington.edu</a> instead. I have also put the past
+          emails <a href="maillist">here</a>.
+      </p>
+
+
+</section>
+</body>
+</document>
+
+
+
+
+
+
+
+
+

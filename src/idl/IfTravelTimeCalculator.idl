@@ -1,0 +1,51 @@
+//File: IfTravelTimeCalculator.idl
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updated for version 1.0
+//********************************************************************
+
+#ifndef _IF_TRAVEL_TIME_CALCULATOR_IDL
+#define _IF_TRAVEL_TIME_CALCULATOR_IDL
+
+#include "Fissures.idl"
+#include "IfService.idl"
+#include "IfEvent.idl"
+
+#pragma prefix "iris.edu"
+
+module Fissures {
+  module IfTravelTimeCalculator {
+
+    const string VERSION = "1.0";
+
+    typedef sequence<string> PhaseNameSeq;
+    typedef sequence<string> ModelNameSeq;
+    typedef string VelocityModelId;
+
+    //********************************************************************
+    //   Travel Time Terms
+    //********************************************************************
+
+    interface TravelTimeCalculator : IfService::Service {
+			
+      IfEvent::PredictedArrivalSeq calculate_travel_times(
+							  in IfService::ConfigurationId config,
+							  in Location event_location,
+							  in Location receiver_location,
+							  in VelocityModelId model_id,
+							  in PhaseNameSeq phases_to_calculate,
+							  out PhaseNameSeq unknown_phases
+							  );
+
+      PhaseNameSeq known_phases(
+       	);
+
+      ModelNameSeq known_models(
+	 );
+
+    };
+  };
+};
+#endif // _IF_TRAVEL_TIME_CALCULATOR_IDL

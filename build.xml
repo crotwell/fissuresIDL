@@ -1,0 +1,136 @@
+
+<project name="FISSURES IDL" default="dist" basedir=".">
+
+<!-- set global properties for this build -->
+<!-- 
+<property name="idlok" value="true" />
+-->
+       <property name="build" value="build" />
+       <property name="dist" value="dist" />
+       <property name="distdoc" value="${dist}/doc" />
+       <property name="java_src" value="java_src" />
+       <property name="idl_javadocs" value="${distdoc}/idl_docs" />
+       <property name="javadocs" value="${distdoc}/idljava_docs" />
+       <property file="../../KeySigning/ant.props" />
+       <property name="ob_dir" value="../../OrbacusSignedJars/dist/" />
+
+       <path id="myclasspath">
+           <pathelement location="${build}" />
+           <pathelement location="IDL/dist/lib/FissuresIDL.jar" />
+           <pathelement location="../junit3.4/junit.jar" />
+           <pathelement location="${ob_dir}/OB.jar" />
+           <pathelement location="${ob_dir}/OBNaming.jar" />
+           <pathelement location="${ob_dir}/OBEvent.jar" />
+       </path>
+       
+
+       <target name="prepare">
+         <!-- Create the time stamp -->
+         <tstamp/>
+         <!-- Create the ${dist}/lib directory -->
+         <mkdir dir="${dist}/lib" />
+         <mkdir dir="${dist}/doc" />
+         <mkdir dir="${javadocs}" />
+         <mkdir dir="${idl_javadocs}" />
+         <!-- Create the build directory structure used by compile -->
+         <mkdir dir="${java_src}" />
+         <mkdir dir="${build}" />
+       </target>
+
+       <target name="idlcompile" depends="prepare" unless="idlok">
+         <!-- Compile the idl into java code from . into ${java_src} -->
+         <delete dir="$java_src" />
+         <mkdir dir="${java_src}" />
+         <execon executable="jidl" failonerror="yes">
+           <arg value="--output-dir" />
+           <arg value="${java_src}" />
+           <arg value="-I." />
+           <arg value="--tie" />
+           <arg value="--auto-package" />
+           <fileset dir=".">
+              <patternset>
+                 <include name="Fissures.idl" />
+                 <include name="If*.idl" />
+              </patternset>
+           </fileset>
+         </execon>
+       </target>
+
+       <target name="idljavadoc" depends="prepare">
+         <!-- Compile the idl into html docs from . into ${idl_javadocs} -->
+         <execon executable="hidl" failonerror="yes" parallel="true">
+           <arg value="--output-dir" />
+           <arg value="${idl_javadocs}" />
+           <arg value="-I." />
+           <arg value="--all" />
+           <fileset dir=".">
+              <patternset>
+                 <include name="master.idl" />
+              </patternset>
+           </fileset>
+         </execon>
+       </target>
+
+       <target name="javacompile" depends="prepare, idlcompile">
+         <!-- Compile the java code from ${src} into ${build} -->
+         <javac destdir="${build}" >
+            <classpath refid="myclasspath" />
+            <src path="${java_src}" />
+            <include name="org/**" />
+            <include name="edu/iris/Fissures/**" />
+         </javac>
+       </target>
+
+       <target name="javadoc" depends="prepare, idlcompile">
+         <!-- Compile the javadocs from ${src} into ${javadocs} -->
+         <javadoc destdir="${javadocs}" sourcepath="${java_src}" 
+packagenames="edu.iris.Fissures.*,edu.iris.*,org.omg.*"  maxmemory="64m" >
+            <classpath refid="myclasspath" />
+        <link href="http://java.sun.com/products/jdk/1.2/docs/api/" />
+         </javadoc>
+       </target>
+
+       <target name="jar" depends="idlcompile, javacompile">
+         <jar jarfile="${dist}/lib/FissuresIDL.jar" basedir="${build}" />
+       </target>
+
+       <target name="signjar" depends="jar" if="signjarpasswd" >
+         <signjar jar="${dist}/lib/FissuresIDL.jar" 
+                  alias="scepp" 
+                  storepass="${signjarpasswd}"
+                  keystore="../../KeySigning/SCEPPKeystore"/>
+       </target>
+
+       <target name="srczip" depends="idlcompile, javacompile">
+         <zip zipfile="${dist}/lib/FissuresCoreIDL.zip" >
+              <fileset dir=".." >
+                 <include name="IDL/*.idl" />
+                 <include name="IDL/build.xml" />
+              </fileset>
+         </zip>
+         <zip zipfile="${dist}/lib/FissuresIDL_src.zip" >
+              <fileset dir=".." >
+                 <include name="IDL/*.idl" />
+                 <include name="IDL/java_src/**" />
+                 <include name="IDL/build.xml" />
+                 <exclude name="fissures/**/*.class" />
+              </fileset>
+         </zip>
+       </target>
+
+       <target name="dist" depends="jar, signjar, javadoc, idljavadoc, srczip">
+
+       </target>
+
+       <target name="docs" depends="idljavadoc, javadoc">
+       </target>
+
+       <target name="clean">
+         <!-- Delete the ${build} and ${dist} directory trees -->
+         <delete dir="${java_src}" />
+         <delete dir="${build}" />
+         <delete dir="${dist}/doc" />
+         <delete dir="${dist}/lib" />
+         <delete dir="${dist}" />
+       </target>
+</project>

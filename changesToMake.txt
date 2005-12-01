@@ -1,0 +1,68 @@
+
+Fissures.idl
+1)	ElementId ???
+2)	Response objects, use seed??? blockettes 53-61 and app.C
+
+IfNetworkMgr.idl
+1)	add ClockType NTP_CLOCK
+2)	NetworkAttr - put code first
+3)	StationName???
+4)	Station should have code, StationAttr have name
+5)	change site_id to code
+6)	rework instrumentation
+7)	time corrections
+8)	Instrument - Time clock_drift???
+9)	ChannelAttr should not have InstrumentConfig,
+	separate method for getting InstrumentConfig for a time
+10)	Support for virtual networks, maybe separate service
+11)	ChannelAttr effective_time should be type TimeRange
+12)     StationAttr doesn't have any connection to NetworkAttr (Ramesh)
+13)     The is no way to get to NetworkAttr (Ramesh)
+14)     There is no way to get to ChannelAttr, SiteAttr or StationAttr (Ramesh)
+
+
+IfTimeSeries.idl
+1)	ComplexNumber is also in Fissures
+2)	ShortSeq, etc are not used in TimeSeriesDataSel
+3)      TimeSeriesDataSel, EncodedData -> EncodedDataSeq
+
+IfDataCenter.idl
+1)	data_point_count -> numPoints
+2)	why time_corrected  (maybe ok)
+3)	SeismogramData extend TimeSeriesAccess and TimeSeriesAdmin
+4)	LocalSeismogram extend TimeSeriesAccess and TimeSeriesAdmin
+5)	DataCenterCallback - should seismograms alwys be returned all at once
+	or might a few be returned at a time, ie datacenter uses several calls,
+        maybe add a finished(id) call so client knows when request is finished?
+
+IfSeismogramMgr.idl
+1)	comments say DataCenter
+2)	move Plottable to Fissures
+3)	MirrorFilter - change "name" and site "id" to "code"
+4)	Many methods on SeismogramXXX might also be useful on LocalSeismogram
+5)      Should append operations have a sequence number so that the client can
+        tell if it received a duplicate packet, or missed one. Possible due to
+        multithreading issues?
+6)      Sould be able to get SeismogramData from a SeismogramAccess without
+        using its type
+7)      create_from_ref in SeismogramFactory should take SeismogramAccess
+        instead of Seismogram
+8)      MirrorFilter is very similar to RequestFilter from IfDataCenter
+9)      Should be a way to get a callback to give to a remote SeismogramDC
+        to add data to local storage
+10)     method to get channel names known to a SeismogramFactory or 
+	FactoryMirrorRegistry to allow mirroring of only the channels wanted
+11)	Should channelId be more like MirrorFilter instead of string?
+12)	No way to update a seismogram's data
+13)	Should set_attributes also have audit entry
+14)	Should attributes have to be updated as a whole, or should they be 
+	updated individually, ie set_sampling, set_y_unit, etc.
+15)	
+
+IfEventDC.idl
+1)	Mechanism for client to listen for "new event" events
+2)	Also listen for new origins on a known event?
+3)	
+
+IfEventMgr.idl
+

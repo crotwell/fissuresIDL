@@ -1,0 +1,96 @@
+//File: IfFilter.idl
+//********************************************************************
+//
+//	Developed by the Fissures Prototype team:
+//	Philip Crotwell
+//	Paul Friberg
+//	Sid Hellman
+//	Tom McSweeney
+//	Tom Owen
+//	John Winchester
+//	Mitchel Sanders
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 1999-05 Mitchel Sanders Split the Fissures.idl from the original
+//                         prototype to add more modularity and
+//                         structure to it. This will better enable
+//                         its modification and expansion.
+//**********************************************************************
+
+#ifndef _IF_FILTER_IDL
+#define _IF_FILTER_IDL
+
+#include "IfSeismogramMgr.idl"
+#include "IfService.idl"
+
+#pragma prefix "iris.edu"
+
+module Fissures {
+  module IfFilter {
+
+    const string VERSION = "1.0";
+
+    //typedef Fissures::IfSeismogramMgr::SeismogramSeq SeismogramSeq;
+    typedef Fissures::IfService::ConfigurationId ConfigurationId;
+
+    //********************************************************************
+    //   Filter Terms
+    //********************************************************************
+
+    enum Cropping {HIGH_PASS, LOW_PASS, BAND_PASS, BAND_STOP};
+
+    typedef sequence<Cropping> CroppingSeq; 
+
+    typedef string Algorithm;
+
+    typedef sequence<Algorithm> AlgorithmSeq;
+
+    struct FilterInfo {
+      AlgorithmSeq supported_algorithms;
+      CroppingSeq supported_croppings;
+      boolean supports_two_way;
+    };
+
+    typedef sequence<float> FloatSeq;
+
+    typedef sequence<short> ShortSeq;
+	
+    struct FilterStyle { 
+      Cropping selection;
+      Algorithm formula;
+      boolean two_way;
+      FloatSeq corner_freqs;
+      ShortSeq nPoles;
+    };
+
+    struct FilterError {
+      long index;
+      string error_msg;
+    };
+
+    typedef sequence<FilterError> FilterErrorSeq;
+
+    //********************************************************************
+    //  Filter Service Interface
+    //********************************************************************
+    interface Filter : Fissures::IfService::Service {
+		
+      FilterInfo possible_options (
+		);
+			
+      boolean filter_seismograms (
+				  in ConfigurationId config,
+				  in FilterStyle filter_rules,
+				  in Fissures::IfSeismogramMgr::SeismogramSeq seismograms,
+				  out FilterErrorSeq errors
+				  ) raises (
+					    Fissures::IfService::UnknownConfiguration
+					    );
+
+    };
+				
+  };
+};
+#endif // _IF_FILTER_IDL

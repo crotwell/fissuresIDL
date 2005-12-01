@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+
+  <properties>
+    <author email="www@seis.sc.edu">Philip Crotwell</author>  
+    <title>Fissures FAQs</title>
+  </properties>
+
+  <body>        
+    <section name="Reference Library">
+
+      <p>
+	Getting up to speed on Fissures is currently more difficult than it
+	should be, largely due to the fact that the code has outpaced the
+	documentation. In addition, the design was large done by a very small
+	group of people, and so the detailed knowledge of the system is
+	in only a few heads.
+      </p>
+      <p>
+	The place to understand Fissures objects at their most fundamental
+	level is the IDL itself. Of course, understanding the syntax and how
+	it is mapped into a given programming language is needed as well.
+      </p>
+      <p>
+	Another useful place is the javadocs that are generated both directly
+	from the IDL and fromm the java source code compiled from the IDL.
+	Some of the difficulties in syntax of IDL are removed by looking
+	at the java derived version, but with the added complexity of the
+	additional helper classes generated for each IDL entity.
+      </p>
+      <p>
+	Looking at existing client and server applications are also very 
+	useful. There are dummy implementations of some services, and
+	other implementations written for real-world use.
+      </p>
+      <p>
+	Lastly, anyone interested in developing software that is Fissures 
+	friendly should be signed up for the fissures-dev email list.
+	Questions can always be posted and maybe even answered.
+      </p>
+    </section>
+  </body>
+</document>

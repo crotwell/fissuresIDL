@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="FISSURES Core IDL"
+	 href="http://www.seis.sc.edu/software/fissuresIDL/">
+
+  <title>The FISSURES Core IDL</title>
+<logo href="/images/fissures_header.gif">The FISSURES Project</logo>
+    
+  <body>
+    <menu name="Essentials">
+      <item name="Front Page"            href="/index.html"/>
+      <item name="News and Status"     href="/news.html"/>
+    </menu>
+
+    <menu name="Get Involved">
+        <item name="Overview"              href="/getinvolved.html"/>
+        <item name="CVS Repositories"      href="/cvsindex.html"/>
+        <item name="Mailing Lists"         href="/mail.html"/>
+        <item name="Reference Library"     href="/library.html"/>
+        <item name="Bug Database"          href="/bugs.html"/>
+    </menu>
+
+    <menu name="Download">
+        <item name="Binaries"              href="/../mavenRepository/fissuresIDL/jars"/>
+        <item name="Source Code"           href="/../mavenRepository/fissuresIDL/distributions"/>
+    </menu>
+
+    <menu name="Projects">
+        <item name="Seed Codec"               href="/../SeedCodec"/>
+        <item name="Core IDL"               href="/../fissuresIDL"/>
+        <item name="Fissures Impl"          href="/../fissuresImpl"/>
+        <item name="Fissures Util"          href="/../fissuresUtil"/>
+        <item name="Dumy Servers"           href="/dummy.html"/>
+        <item name="SEED"                   href="/seed.html"/>
+        <item name="SOD"          href="/../sod"/>
+        <item name="GEE"          href="/../gee"/>
+	<item name="Related Projects"       href="/related.html"/>
+    </menu>
+
+
+  </body>
+</project>

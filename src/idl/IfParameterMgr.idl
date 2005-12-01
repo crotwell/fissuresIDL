@@ -1,0 +1,423 @@
+//File: IfParameterMgr.idl
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updates for version 1.0
+//********************************************************************
+
+#ifndef _IF_PARAMETER_MGR_IDL
+#define _IF_PARAMETER_MGR_IDL
+
+#include "Fissures.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfParameterMgr
+//********************************************************************
+module Fissures {
+  module IfParameterMgr {
+
+    const string VERSION = "1.0";
+
+
+    //********************************************************************
+    //  Parameter Terms
+    //********************************************************************
+    typedef string ParameterId;
+
+    typedef string ParameterName;
+    typedef sequence<ParameterName> ParameterNameSeq;
+    typedef string ParmSetName;
+    typedef sequence<ParmSetName> ParmSetNameSeq;
+
+    struct ParameterRef {
+      ParameterId a_id;
+      string creator;
+    };
+
+    struct Parm {
+      ParameterName parm_name;
+      any parm_value;
+    };
+
+    typedef sequence<Parm> ParmSeq;
+
+    struct ParmDef {
+      ParameterName parm_name;
+      string description;
+      string creator;
+    };
+
+    typedef sequence<ParmDef> ParmDefSeq;
+
+    struct ParmSetAttr {
+      ParmSetName name;
+      string description;
+      string creator;
+    };
+
+    //Provide management of the parameter data
+    interface ParameterComponent;
+    interface ParmSetFactory;
+    interface ParmSetFinder;
+    interface ParmSetAccess;
+    interface ParmSet;
+    interface ParameterMgr;
+    interface ParameterMgrAccess;
+    interface ParameterIterator;
+    interface ParameterDefIterator;
+    interface ParameterNameIterator;
+    interface ParmSetIterator;
+
+    typedef sequence<ParmSet> ParmSetSeq;
+
+    //********************************************************************
+    //  ParameterComponent Interfaces
+    //********************************************************************
+    /**
+     * The ParameterComponent is the reference that is distributed
+     * through either a naming or trader service for entry into the
+     * parameter manager.
+     */
+    interface ParameterComponent {
+      readonly attribute ParmSetFinder a_parmset_finder;
+      readonly attribute ParameterMgrAccess a_parm__mgr;
+    };
+
+
+    //********************************************************************
+    //  ParmSetFinder Interfaces
+    //********************************************************************
+    /**
+     * The ParmSetFinder provides the ability to find a ParmSet. A
+     * ParmSet is a user defined collection of parameters.
+     */
+    interface ParmSetFinder :
+      ParameterComponent
+    {
+      readonly attribute ParmSetFactory a_factory;
+
+      ParmSetAccess get_parm_set_by_name (
+					  in ParmSetName a_name
+					  ) raises (
+						    Fissures::FissuresException
+						    );
+
+
+      ParmSetSeq get_parm_sets_by_creator (
+					   in long how_many,
+					   out ParmSetIterator rest
+					   );
+
+      //Parameter Deinfition Finders
+      ParameterNameSeq find_defined_parm_names (
+						in long how_many,
+						out ParameterNameIterator rest
+						);
+
+      ParmDefSeq find_all_parm_defs(
+				    in long how_many,
+				    out ParameterDefIterator rest
+				    );
+
+      ParmDefSeq find_all_parm_def_by_creator(
+					      in string creator,
+					      in long how_many,
+					      out ParameterDefIterator rest
+					      );
+				
+      ParmDef find_parm_def(
+			    in ParameterName name
+			    ) raises (
+				      Fissures::FissuresException
+				      );	
+
+    };
+
+    //********************************************************************
+    //  ParmSetFactory Interfaces
+    //********************************************************************
+    /**
+     * The ParmSetFactory provides the operations to to define a ParmSet
+     */
+    interface ParmSetFactory :
+      ParmSetFinder
+    {
+
+      void create (
+		   in ParmSetAttr attr
+		   );
+
+      void destroy ();
+
+      //Parm Definition Creation
+      void create_parameter_def (
+				 in ParmDef parm_definition
+				 ) raises (
+					   Fissures::FissuresException
+					   );
+
+
+
+    };
+
+    //********************************************************************
+    //  ParmSetAccess Interfaces
+    //********************************************************************
+    /**
+     * The ParmSetAccess provides read capability on a PartSet
+     * definition.
+     */
+    interface ParmSetAccess :
+      ParameterComponent
+    {
+      readonly attribute ParmSet a_writable;
+
+      //Parameter Set Access
+      ParmSetAttr get_attributes();
+
+      ParmDefSeq get_all_parm_defs();
+
+      ParmDef get_parm_def(
+			   in ParameterName definition
+			   ) raises (
+				     Fissures::FissuresException
+				     );
+		
+      ParmDefSeq get_parm_defs(
+			       in ParameterNameSeq definitions
+			       ) raises (
+					 Fissures::FissuresException
+					 );
+
+    };
+
+    //********************************************************************
+    //  ParmSet Interfaces
+    //********************************************************************
+    /**
+     * The ParmSet provides full access, read and write capability, to a
+     * PartSet definition.
+     */
+    interface ParmSet :
+      ParmSetAccess
+    {
+
+      void update_name(
+		       in string name
+		       ) raises (
+				 Fissures::FissuresException
+				 );
+
+      void update_description(
+			      in string description
+			      ) raises (
+					Fissures::FissuresException
+					);
+
+      void add_new_parm_def (
+			     in ParmDef parm_def
+			     );
+
+      void add_existing_parm_def (
+				  in ParameterName definition
+				  ) raises (
+					    Fissures::FissuresException
+					    );
+
+      void delete_parm_def (
+			    in ParameterName definition
+			    ) raises (
+				      Fissures::FissuresException
+				      );
+	
+    };
+
+
+    //********************************************************************
+    //  ParameterFactory Interfaces
+    //********************************************************************
+    /**
+     * The ParameterFactory generates an id for a FISSURES element. This
+     * id is store by the element. It is the key by which parameters
+     * and parmsets are association to an element and retrieved for an
+     * element
+     */
+    interface ParameterFactory :
+      ParameterComponent
+    {
+		
+      ParameterId	generate_id();
+
+    };
+
+    //********************************************************************
+    //  ParameterMgrAccess Interfaces
+    //********************************************************************
+    /**
+     * The ParameterMgrAccess provide read capiblity into the manager.
+     */
+    interface ParameterMgrAccess :
+      ParameterComponent
+    {
+      readonly attribute ParameterMgr a_writeable;		
+
+      //Retrieving parameter for an element
+      any get_parm (
+		    in ParameterId a_id,
+		    in ParameterName parm
+		    ) raises (
+			      Fissures::FissuresException
+			      );
+
+      ParameterNameSeq get_parm_names (
+				       in ParameterId a_id,
+				       in long how_many,
+				       out ParameterNameIterator rest
+				       ) raises (
+						 Fissures::FissuresException
+						 );
+
+      ParmSeq get_parms (
+			 in ParameterId a_id,
+			 in ParameterNameSeq names
+			 ) raises (
+				   Fissures::FissuresException
+				   );
+		
+      ParmSeq get_all_parms (
+			     in ParameterId a_id,
+			     in long how_many,
+			     out ParameterIterator rest
+			     ) raises (
+				       Fissures::FissuresException
+				       );
+
+      ParmSeq get_parm_set(
+			   in ParameterId a_id,
+			   in ParmSetName parm_def
+			   ) raises (
+				     Fissures::FissuresException
+				     );
+    };
+	
+    //********************************************************************
+    //  ParameterMgr Interfaces
+    //********************************************************************
+    /**
+     * The ParameterMgr provides full access to the manager.
+     */
+    interface ParameterMgr :
+      ParameterMgrAccess
+    {
+      readonly attribute ParameterFactory a_factory;
+		
+      //Parm creation
+      void add_parm (
+		     in ParameterId a_id,
+		     in Parm parameter
+		     ) raises (
+			       Fissures::FissuresException
+			       );
+
+      void add_parms (
+		      in ParameterId a_id,
+		      in ParmSeq parameters
+		      ) raises (
+				Fissures::FissuresException
+				);
+
+      void create_parm(
+		       in ParameterId a_id,
+		       in ParmDef parm_def,
+		       in any value
+		       );
+
+      //Update Parms
+      void update_parm (
+			in ParameterId a_id,
+			in Parm parameter
+			) raises (
+				  Fissures::FissuresException
+				  );
+
+      void update_parms (
+			 in ParameterId a_id,
+			 in ParmSeq parameters
+			 ) raises (
+				   Fissures::FissuresException
+				   );
+      //Deleting Parms
+      void delete_parm_ (
+			 in ParameterId a_id,
+			 in Parm parameter
+			 ) raises (
+				   Fissures::FissuresException
+				   );
+
+      void delete_parms (
+			 in ParameterId a_id,
+			 in ParmSeq parameters
+			 ) raises (
+				   Fissures::FissuresException
+				   );
+
+    };
+
+    //********************************************************************
+    //  Iterator Interfaces for the Parameter Manager    
+    //********************************************************************
+    interface ParameterIterator : Fissures::FissuresIterator {
+
+      boolean next_one (
+			out Parm parameter
+			);
+
+      boolean next_n ( 
+		      in unsigned long how_many,
+		      out ParmSeq parms
+		      );
+    };
+
+    interface ParameterDefIterator : Fissures::FissuresIterator {
+		
+      boolean next_one (
+			out ParmDef parmeter
+			);
+
+      boolean next_n ( 
+		      in unsigned long how_many,
+		      out ParmDefSeq parm_defs
+		      );
+    };
+
+    interface ParameterNameIterator : Fissures::FissuresIterator {
+		
+      boolean next_one (
+			out ParameterName name
+			);
+
+      boolean next_n ( 
+		      in unsigned long how_many,
+		      out ParameterNameSeq names
+		      );
+    };
+
+    interface ParmSetIterator : Fissures::FissuresIterator {
+		
+      boolean next_one (
+			out ParmSet name
+			);
+
+      boolean next_n ( 
+		      in unsigned long how_many,
+		      out ParmSetSeq names
+		      );
+    };
+
+    };
+  };
+
+#endif // _IF_PARAMETER_MGR_IDL

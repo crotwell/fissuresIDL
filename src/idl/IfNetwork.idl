@@ -1,0 +1,994 @@
+//File: IfNetwork.idl
+//
+//********************************************************************
+// Date		 By				   	   Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updates for version 1.0
+//********************************************************************
+
+#ifndef _IF_NETWORK_IDL
+#define _IF_NETWORK_IDL
+
+#include "Fissures.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module Network
+//********************************************************************
+
+module Fissures {
+
+  module IfNetwork {
+
+    const string VERSION = "1.0";
+
+
+    interface ConcreteNetwork;
+    interface VirtualNetwork;
+    interface NetworkFinder;
+    interface NetworkFactory;
+    interface NetworkExplorer;
+
+    abstract interface Network;
+    typedef sequence<Network> NetworkSeq;
+
+    abstract interface NetworkAccess;
+    typedef sequence<NetworkAccess> NetworkAccessSeq;
+
+    //******************************************************************
+    // Data Types
+    //******************************************************************
+    typedef string ClockType;
+
+    /** Station code as defined in the SEED manual. */
+    typedef string StationCode; //5 char
+
+    /** Site code, the same as the loc id as defined in the SEED manual. Note 
+        that in the case of an undefined site code, the empty value is 
+	space-space.
+    */
+    typedef string SiteCode;   //2 char
+
+    /** Three character Channel code as defined in the SEED manual. */
+    typedef string ChannelCode;  //3 char
+
+    /** Two character network code as defined in the SEED manual. */
+    typedef string NetworkCode; //2 char
+
+    /** Identifies a network. The additional begin_time is needed for temporary
+     *  PASSCAL networks. The begin_time should be equal to the beginin 
+     *  effective time of the network, which is also in the NetworkAttributes. 
+     */
+    struct NetworkId {
+      NetworkCode network_code;
+      Time begin_time;
+    };
+
+    /** Identifies a station. The additional begin_time is needed as station
+     *  codes can be reused if, for example the station moves only a short 
+     *  distance. The begin_time should be equal to the begining
+     *  effective time of the station, which is also in the Station object. 
+     */
+    struct StationId {
+      NetworkId network_id;
+      StationCode station_code;
+      Time begin_time;
+    };
+    typedef sequence<StationId> StationIdSeq;
+
+    /** Identifies a Site. Sites in the FISSURES model are roughly equivalent 
+     *  to location identifiers in SEED. The additional begin_time is needed 
+     *  as site
+     *  codes can be reused if, for example the site moves only a short 
+     *  distance, or in the case of a new station that shares the same station
+     *   code. The begin_time should be equal to the begining
+     *  effective time of the site, which is also in the Site object. 
+     */
+    struct SiteId {
+      NetworkId network_id;
+      StationCode station_code;
+      SiteCode site_code;
+      Time begin_time;
+    };
+    typedef sequence<SiteId> SiteIdSeq;
+
+
+    /** Identifies a Channel. The additional begin_time is needed 
+     *  as channel
+     *  codes are frequently reused if, for example a new sensor is install
+     *  in place of the old one, which properly creates a new Channel.
+     *  The begin_time should be equal to the begining
+     *  effective time of the channel, which is also in the Channel object. 
+     */
+    struct ChannelId {
+      NetworkId network_id;
+      StationCode station_code;
+      SiteCode site_code;
+      ChannelCode channel_code;
+      Time begin_time;
+    };
+    typedef sequence<ChannelId> ChannelIdSeq;
+  
+
+    //?????? create Network element with code, name, lifecycle(TimeRange)
+    //define end time if network still activate
+    //(this applies to all network elements)
+
+    /** The attributes of a seismic network. This object exists because
+     *  the network object is an remote CORBA object. */
+    valuetype NetworkAttr
+    {
+      /** Identifies a network uniquely. */
+      private  NetworkId id;
+      /** A name for this network. The form of this is not specified, 
+       *  but it should be suitable for display to a person. It is not 
+       *  nescessarily unique. */
+      public  string name;
+      /**A description of the network. The form of this is not specified, but
+	 should be suitable for display to a person.
+      */
+      public  string description;
+      /** The owner or owning agency of the network. */
+      public  string owner;
+      /** The effective time range of the network. The begin should be at or 
+       *  before any station within the network records data. If the network
+       * is still operating at the present time, then the end should be set
+       * to TIME_UNKNOWN as defined in IfConstants.idl.
+       */
+      public  TimeRange effective_time;
+      /** returns the NetworkId. This is just to access the private id 
+	  attribute. */
+      NetworkId get_id();
+      /** Returns the network code portion of the network id. This is 
+       *  equivalent to net_id().network_code.
+       */
+      NetworkCode get_code();
+    };
+    //??? Notes service for fissure objects.
+
+    /** Represents a seismic recording station. Following the SEED convention,
+     *  multiple sensors within a 1 km cube can be considered the same station.
+     */
+    valuetype Station
+    {
+      /** Uniquely identifies this station. */
+      private  StationId id;
+      /** A name for this station. The form of this is not specified, but it
+       *  should be usable as a display for a person. */
+      public  string name;
+      /** The location of the station. Note that following the SEED conventions
+	  on station, the actual location of the recording instruments may
+	  be slightly offset from this location, up to 1 kilometer. */
+      public  Location my_location;
+      /** The effective time of the stations. The begin should be at or before
+	  any data is recorded. If the station is still active, the end time
+	  should be TIME_UNKNOWN as defined in IfConstants.idl. */
+      public  TimeRange effective_time;
+      /** The operator of the station. This the form of this is not specified
+	  but it should be usable as a display for a person. */
+      public  string operator;
+      /** An additional description of the station, if needed. The form is not
+	  specified, but it should be usable as a display for a person. */
+      public  string description;
+      /** An a additional comment about the station, with unspecified form. */
+      public  string comment;
+      /** The network attributes of the network that this station belongs. */
+      public  NetworkAttr my_network;
+      /** Accesses the id of this station. */
+      StationId get_id();
+      /** Accesses the station code. This is equivalent to 
+	  get_id().station_code */
+      StationCode get_code();
+    };
+
+    typedef sequence<Station> StationSeq;
+
+    /** Represents a seismic recording site. This is roughly equivalent to
+     *  the location identifier in SEED. Channels from a single site should
+     *  come frm the same location, but the converse is not required. */
+    valuetype Site
+    {
+      /** The unique identifier of this site. */
+      private  SiteId id;
+      /** The location of this site. */
+      public  Location my_location;
+      /** The effective time of this site. The begin should be at or before
+       *  any data was recorded by any channel within this site. If the site is
+       *  still operating, then the end should be TIME_UNKNOWN as defined
+       *  in IfConstants.idl. */
+      public  TimeRange effective_time;
+      /** The station to which this site belongs. */
+      public  Station my_station;
+      /** Any additional comment for this site. The form of this is not 
+	  specified, but it should be usable as a display for a person. */
+      public  string comment;
+      /** An accessor method for the private id. */
+      SiteId get_id();
+      /** Accesses the site code. This is equivalent to the SEED location 
+       *  identifier and to get_id().site_code. */
+      SiteCode get_code();
+    };
+
+    /** Represents a seismic recording channel, following the SEED convention.
+     */
+    valuetype Channel
+    {
+      /** Uniquely identifies this channel. Note that channel codes can be 
+       *  reused within a site, and hence a time is attached to the channel
+       *  to uniquely identify it. */
+      private ChannelId id;
+      /** A name for this channel. The form is not specified, but it should be
+       *  usable as a display for a person. If no name is needed, then a zero
+       length string should be used.*/
+      public  string name;
+      /** The orientation of the recording instrument for this channel. This
+	  should follow the SEED conventions. */
+      public  Orientation an_orientation;
+      /** The nominal sampling rate for this channel. This is the sampling rate
+       *  that the channel is intended to record at, but due to instrument
+       *  problems, clock errors and timing errors, the actual sampling rate
+       *  at any particular time may differ from this value. */
+      public  Sampling sampling_info;
+      /** The effective time of the channel. The begin should be at or before
+       *  the first data is recorded on this channel. Note that it is illegal
+       *  have more than one channel within a site with the same code with
+       *  overlaping effective times. */
+      public  TimeRange effective_time;
+      /** The site that this channel belongs to.*/
+      public  Site my_site;
+
+      /** Access the private id attribute. */
+      ChannelId get_id();
+      /** Access the channnel code. This is equivalent to get_id().channel_code
+       */
+      ChannelCode  get_code();
+    };
+    typedef sequence<Channel> ChannelSeq;
+
+    typedef sequence<ChannelId,3> ChannelGroup;
+
+    typedef sequence<ChannelGroup> ChannelGroupSeq;
+
+
+    //********************************************************************
+    //	Response/Filter Terms
+    //********************************************************************
+
+    /** The allowed transfer types. See blockette 53 field 3 in the SEED 
+	manual.
+     */
+    enum TransferType {LAPLACE, ANALOG, COMPOSITE, DIGITAL};
+
+    /** The type of response filter, these correspond to blockette 54 for
+	coefficient, 53 for polezero and 55 for list. List is for compatibility
+	with very old stations, and should not be used if possible. */
+    enum FilterType {COEFFICIENT, POLEZERO, LIST};
+
+    struct ComplexNumberErrored {
+      float real;
+      float real_error;
+      float imaginary;
+      float imaginary_error;
+    };
+
+    struct CoefficientErrored {
+      float value;
+      float error;
+    };
+
+    /** A coefficient based response filter. This corresponds to blockette 54
+	in the SEED manual. */
+    struct CoefficientFilter {
+      sequence<CoefficientErrored> numerator;
+      sequence<CoefficientErrored> denominator;
+    };
+
+    /** A pole zero based response filter. This corresponds to blockette 53
+	in the SEED manual. */
+    struct PoleZeroFilter {
+      sequence<ComplexNumberErrored> poles;
+      sequence<ComplexNumberErrored> zeros;
+    };
+
+    /** Represents a list style response. Similar to blockette 55 in SEED.
+	NOTE that this style response should only be used for older data where
+	coefficients or poles and zeros are not availible. */
+    struct ListFilter {
+      sequence<float> frequency;
+      Unit frequency_unit; // usually Hz
+      sequence<float> amplitude; 
+      sequence<float> amplitude_error;
+      sequence<float> phase;
+      Unit phase_unit; // usually deg
+      sequence<float> phase_error;
+    };
+
+    union Filter switch (FilterType) {
+    case COEFFICIENT: CoefficientFilter coeff_filter;
+    case POLEZERO: PoleZeroFilter pole_zero_filter;
+    case LIST: ListFilter list_filter;
+    };
+
+    typedef sequence<Filter> FilterSeq;
+
+    /** A gain applied at a response stage. This is equivalent to fields 4
+	and 5 of blockette 58 when the stage is not zero. */
+    struct Gain {
+      float gain_factor;
+      float frequency;
+    };
+
+    /** A decimation step within a response stage. This is equivalent to 
+     *  blockette 57 within the SEED manual. */
+    struct Decimation {
+      /** The input sampling rate, equivalent to field 4 within blockette 57.
+       */
+      Sampling input_rate;
+      /** The decimation factor. If the factor is 4, then 3 samples are removed
+       *  for every one that is kept. 
+       *  Equivalent to field 5 within blockette 57 in SEED. 
+       */
+      long factor;
+      /** The offset to the sample that is kept. If the first data point is
+       *  kept then this shoudl be zero, if the second is kept it should be
+       *  one. This is equivalent to field 6 within blockette 57 in SEED.*/
+      long offset;
+      /** The estimated delay. Equivalent to field 7 within blockette 57 in
+	  SEED.
+       */
+      TimeInterval estimated_delay;
+      /** The time shift applied due to correct the delay. This is equivalent
+       *  to field 8 within blockette 57 in SEED. */
+      TimeInterval correction_applied;
+    };
+    typedef sequence<Decimation,1> DecimationOpt;
+
+    /** A norminalization factor, such that the stage evaluated at the
+     *  frequency is 1. The constant is factored out onto this object.
+     */
+    struct Normalization {
+      float ao_normalization_factor;
+      float normalization_freq;
+    };
+    typedef sequence<Normalization,1> NormalizationOpt;
+
+
+    struct Stage {
+      TransferType type;
+      Unit input_units;
+      Unit output_units;
+      /** The optional normailization. This field is not used by all stages.
+	  If a stage does not use this, then this field should be a zero length
+	  array. If it is used, it should be a length one array. The array
+	  should never be longer than one. */
+      NormalizationOpt the_normalization; //Only for analog
+      Gain the_gain;
+      /** The decimation for a digital stage. If this is not a digital stage
+	  then the array should be o length zero. If there is a decimation
+	  within this stage, it should 
+       */
+      DecimationOpt the_decimation;  //Only for digital
+      FilterSeq filters;
+    };
+    typedef sequence<Stage> StageSeq;
+
+    /** The overall sensitivity of the response. This is equivalent to fields 4
+	and 5 of blockette 58 when the stage is zero. */
+    struct Sensitivity {
+      float sensitivity_factor;
+      float frequency;
+    };
+
+    struct Response {
+      Sensitivity the_sensitivity;
+      StageSeq stages;
+    };
+
+    typedef string HardwareId;
+
+    //  abstract valuetype SeismicHardware {
+    valuetype SeismicHardware {
+      public  long id_number;
+      public  string manufacturer;
+      public  string serial_number;
+      public  string model;
+    };
+
+    valuetype Sensor :
+      SeismicHardware
+    {
+      public  float nominal_high_freq;
+      public  float nominal_low_freq;
+    };
+
+    enum RecordingStyle { CONTINUOUS, TRIGGERED, OTHER, UNKNOWN };
+
+    valuetype DataAcqSys :
+      SeismicHardware
+    {
+      public RecordingStyle style;
+    };
+
+    valuetype Clock :
+      SeismicHardware
+    {
+      public ClockType type;
+    };
+
+    //	abstract valuetype TimeCorrection {
+    valuetype TimeCorrection {
+      public TimeRange effective_time;
+      public TimeInterval begin_offset;
+      public TimeInterval end_offset;
+      public string who;
+    };
+
+    valuetype Calibration {
+      /** frequency in hertz (HZ) */
+      public float frequency;
+      public float sensitivity;
+      public Time  when;
+      };
+    typedef sequence<Calibration> CalibrationSeq;
+
+    typedef sequence<TimeCorrection> TimeCorrectionSeq;
+
+    valuetype Instrumentation {
+      public  Response the_response;
+      public  TimeRange effective_time;
+      public  Clock the_clock;
+      public  Sensor the_sensor;
+      public  DataAcqSys das;
+    };
+
+
+    valuetype SamplingRange {
+      public Sampling min;
+      public Sampling max;
+    };
+
+    valuetype OrientationRange {
+      public Orientation center;
+      public Quantity angular_distance;
+    };
+
+    //
+    // Exceptions
+    //
+
+    //********************************************************************
+    // Exceptions
+    //********************************************************************
+    exception StationNotFound {
+      StationId station;
+    };
+
+    exception SiteNotFound {
+      SiteId site;
+    };
+
+    exception DuplicateSiteId {
+      SiteId site;
+    };
+
+    exception ChannelNotFound {
+      ChannelId channel;
+    };
+
+    exception DuplicateChannelId {
+      ChannelId channel;
+    };
+
+    exception DuplicateStationId {
+      StationId station;
+    };
+
+    exception NetworkNotFound { };
+
+    exception ConcreteNetworkNotAvailable {};
+
+
+    //Iterator
+
+    interface ChannelIdIter {
+
+      long how_many_remain();
+
+      boolean next_n(
+		     in long how_many,
+		     out ChannelIdSeq seq);
+
+      void destroy();
+    };
+
+    //ChannelGroup Iterator
+
+    interface ChannelGroupIter {
+
+      long how_many_remain();
+
+      boolean next_n(
+		     in long how_many,
+		     out ChannelGroupSeq seq);
+
+      void destroy();
+    };
+
+    //********************************************************************
+    // NetworkDC Interface
+    //********************************************************************
+    /**
+     * The NetworkDC defines the Network DataCenter
+     */
+    interface NetworkDC {
+      readonly attribute NetworkExplorer a_explorer;
+      readonly attribute NetworkFinder   a_finder;
+    };
+
+    //********************************************************************
+    // NetworkMgr Interface
+    //********************************************************************
+    /**
+     * The NetworkMgr defines the Network Manager
+     */
+    interface NetworkMgr : NetworkDC {
+      readonly attribute NetworkFactory a_factory;
+    };
+
+    //********************************************************************
+    // NetworkExplorer Interface
+    //********************************************************************
+    /**
+     * The NetworkExplorer
+     */
+    interface NetworkExplorer {
+
+      ChannelIdSeq locate_channels(
+				 in Area the_area,
+				 in SamplingRange sampling,
+				 in OrientationRange orientation,
+				 in long seq_max,
+				 out ChannelIdIter iter
+				 );
+
+      ChannelGroupSeq locate_by_sampling(
+					 in Area the_area,
+					 in SamplingRange sampling,
+					 in long seq_max,
+					 out ChannelGroupIter iter
+					 );
+
+      ChannelGroupSeq locate_all(
+				 in Area the_area,
+				 in long seq_max,
+				 out ChannelGroupIter iter
+				 );
+
+      Channel retrieve_channel(
+			       in ChannelId a_channel
+			       ) raises (
+					 ChannelNotFound
+					 );
+
+      ChannelGroup retrieve_grouping(
+				     in ChannelId a_channel
+				     ) raises (
+					       ChannelNotFound
+					       );
+
+    };
+
+
+    //********************************************************************
+    // NetworkFinder Interface
+    //********************************************************************
+    /**
+     * The NetworkFinder
+     */
+    interface NetworkFinder {
+
+      /**
+       * Only returns reals. Virtuals do not have a code
+       */
+      NetworkAccess retrieve_by_id(
+				   in NetworkId id
+				   ) raises (
+					     NetworkNotFound
+					     );
+
+      /**
+       * Only returns reals. Virtuals do not have a code
+       */
+      NetworkAccessSeq retrieve_by_code(
+					in NetworkCode code
+					) raises (
+						  NetworkNotFound
+						  );
+
+      NetworkAccessSeq retrieve_by_name(
+					in string name
+					) raises (
+						  NetworkNotFound
+						  );
+
+      NetworkAccessSeq retrieve_all(
+      );
+
+    };
+
+
+
+    //********************************************************************
+    // NetworkFactory Interface
+    //********************************************************************
+    /**
+     * The NetworkFactory
+     */
+    interface NetworkFactory
+    {
+      Network create(
+		     in NetworkAttr my_attributes,
+		     in Time start_time,
+		     in AuditInfoOpt audit_info
+		     ) raises (
+			       FissuresException
+			       );
+
+      Network create_virtual(
+			     in string name,
+			     in AuditInfoOpt audit_info
+			     );
+    };
+
+
+    //********************************************************************
+    // NetworkAccess Interface
+    //********************************************************************
+    /**
+     * The NetworkAccess
+     */
+    abstract interface NetworkAccess :
+    AuditSystemAccess
+    {
+      NetworkAttr get_attributes();
+
+      //?????      NoteIdSeq get_notes();
+
+      StationSeq retrieve_stations();
+ 
+      ChannelSeq retrieve_for_station(in StationId id);
+ 
+      ChannelGroup retrieve_grouping(
+				     in ChannelId id
+				     ) raises (
+					       ChannelNotFound
+					       );
+
+      ChannelGroupSeq retrieve_groupings(
+      );
+
+      Channel retrieve_channel(
+			       in ChannelId id
+			       ) raises (
+					 ChannelNotFound
+					 );
+
+      ChannelSeq retrieve_channels_by_code(
+					   in StationCode station_code,
+					   in SiteCode site_code,
+					   in ChannelCode channel_code
+					   ) raises (
+						     ChannelNotFound
+						     );
+
+      ChannelSeq locate_channels(
+				 in Area the_area,
+				 in SamplingRange sampling,
+				 in OrientationRange orientation
+				 );
+
+      Instrumentation retrieve_instrumentation (
+						in ChannelId id,
+						in Time the_time
+						) raises (
+							  ChannelNotFound
+							  );
+
+      CalibrationSeq retrieve_calibrations(
+					   in ChannelId id,
+					   in TimeRange the_time
+					   ) raises (
+						     ChannelNotFound,
+						     NotImplemented
+						     );
+
+      TimeCorrectionSeq retrieve_time_corrections(
+						  in ChannelId id,
+						  in TimeRange time_range
+						  ) raises (
+							    ChannelNotFound,
+							    NotImplemented
+							    );
+
+      ChannelIdSeq retrieve_all_channels (
+					  in long seq_max,
+					  out ChannelIdIter iter
+					  );
+
+      AuditTrail get_audit_trail_for_channel(
+					     in ChannelId id
+					     ) raises (
+						       ChannelNotFound,
+						       NotImplemented
+						       );
+
+    };
+
+    //********************************************************************
+    // ConcreteNetworkAccess Interface
+    //********************************************************************
+    /**
+     * The ConcreteNetworkAccess represents a real world network
+     */
+    interface ConcreteNetworkAccess :
+      NetworkAccess
+    {
+      readonly attribute ConcreteNetwork a_writeable;
+
+      AuditTrail get_audit_trail_for_station(
+					     in StationId id
+					     ) raises (
+						       StationNotFound,
+						       NotImplemented
+						       );
+
+      AuditTrail get_audit_trail_for_site(
+					  in SiteId id
+					  ) raises (
+						    SiteNotFound,
+						    NotImplemented
+						    );
+
+
+
+    };
+
+
+    //********************************************************************
+    // VirtualNetworkAccess Interface
+    //********************************************************************
+    /**
+     * The VirtualNetworkAccess represents temporary networks setup by
+     * a user for analysis. Virtual network are setup as groups of
+     * channels, allowing the exclusion of the non-interesting channels from
+     * stations. Virtual networks do not have codes, to avoid polluting the
+     * current 2 character address space for network codes. Hence, they can
+     * only be accessed by name. This should not be a problem as the name
+     * can be a String of any form, although care should be taken to avoid
+     * conflicts with existing networks.
+     */
+    interface VirtualNetworkAccess :
+      NetworkAccess
+    {
+
+      readonly attribute VirtualNetwork a_writeable;
+
+      ConcreteNetworkAccess get_network_for_channel(
+						    in ChannelId a_channel
+						    ) raises (
+							      ChannelNotFound,
+							      ConcreteNetworkNotAvailable
+							      );
+
+    };
+
+
+
+
+    //********************************************************************
+    // Network Interface
+    //********************************************************************
+    /**
+     * The abstract network interface provides for a single object type
+     * for referencing
+     */
+    abstract interface Network {
+    };
+
+
+
+    //********************************************************************
+    // ConcreteNetwork Interface
+    //********************************************************************
+    /**
+     * The ConcreteNetwork provides full access to a real world network
+     */
+    interface ConcreteNetwork :
+      Network, ConcreteNetworkAccess
+    {
+      void deactivate();
+
+      void add_station(
+		       in Station a_station,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 DuplicateStationId
+				 );
+
+      //?? define update schematics - blank ignore? or update all fields?
+      void update_station(
+			  in Station a_station,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    StationNotFound
+				    );
+
+      void deactivate_station(
+			      in StationId code,
+			      in Time end_time,
+			      in AuditInfoOpt audit_info
+			      ) raises (
+					StationNotFound
+					);
+
+      void delete_station(
+			  in StationId code,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    StationNotFound
+				    );
+
+      void add_site(
+		    in  Site a_site,
+		    in AuditInfoOpt audit_info
+		    ) raises (
+			      StationNotFound,
+			      DuplicateSiteId
+			      );
+
+      void udpate_site(
+		       in  Site a_site,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 SiteNotFound
+				 );
+
+      void deactivate_site(
+			   in  SiteId site_id,
+			   in  Time end_time,
+			   in AuditInfoOpt audit_info
+			   ) raises (
+				     SiteNotFound
+				     );
+
+      void delete_site(
+		       in  SiteId site_id,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 SiteNotFound
+				 );
+
+      void add_channel(
+		       in  Channel a_channel,
+		       in  Response the_response,
+		       in  CalibrationSeq the_calibrations,
+		       in  Clock the_clock,
+		       in  Sensor the_sensor,
+		       in  DataAcqSys das,
+		       in  TimeCorrectionSeq time_corrections,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 SiteNotFound,
+				 DuplicateChannelId
+				 );
+
+      void update_channel(
+			  in  Channel a_channel,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    ChannelNotFound
+				    );
+
+      void deactivate_channel(
+			      in  ChannelId channel_id,
+			      in AuditInfoOpt audit_info
+			      ) raises (
+					ChannelNotFound
+					);
+
+      void delete_channel(
+			  in  ChannelId channel_id,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    ChannelNotFound
+				    );
+
+      void update_clock(
+			in ChannelId the_channel,
+			in Clock new_clock,
+			in Time start_time,
+			in AuditInfoOpt audit_info
+			) raises (
+				  ChannelNotFound
+				  );
+
+      void update_sensor(
+			 in ChannelId the_channel,
+			 in Sensor new_sensor,
+			 in Time start_time,
+			 in AuditInfoOpt audit_info
+			 ) raises (
+				   ChannelNotFound
+				   );
+
+      void update_response(
+			   in ChannelId the_channel,
+			   in Response new_response,
+			   in Time start_time,
+			   in AuditInfoOpt audit_info
+			   ) raises (
+				     ChannelNotFound
+				     );
+
+      void update_das(
+		      in ChannelId the_channel,
+		      in DataAcqSys new_das,
+		      in Time start_time,
+		      in AuditInfoOpt audit_info
+		      ) raises (
+				ChannelNotFound
+				);
+
+
+      void add_calibration (
+			    in ChannelId the_channel,
+			    in Calibration new_calibration,
+			    in Time start_time,
+			    in AuditInfoOpt audit_info
+			    ) raises (
+				      ChannelNotFound
+				      );
+
+      void add_time_correction (
+				in ChannelId the_channel,
+				in TimeCorrection new_correction,
+				in Time start_time,
+				in AuditInfoOpt audit_info
+				) raises (
+					  ChannelNotFound
+					  );
+
+    };
+
+    //********************************************************************
+    // VirtualNetwork Interface
+    //********************************************************************
+    /**
+     * The VirtualNetwork provides full access user defined network
+     */
+    interface VirtualNetwork :
+      Network, VirtualNetworkAccess
+    {
+
+      void add_channel(
+		       in ChannelId a_channel,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 DuplicateChannelId
+				 );
+
+      void remove_channel(
+			  in ChannelId a_channel,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    ChannelNotFound
+				    );
+
+    };
+
+    };
+
+  };
+
+#endif // _IF_NETWORK_IDL

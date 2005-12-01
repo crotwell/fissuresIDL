@@ -1,0 +1,323 @@
+//File: IfSeismogramDC.idl
+//
+//********************************************************************
+//	Developed by the Fissures Prototype team:
+//	Philip Crotwell
+//	Paul Friberg
+//	Sid Hellman
+//	Tom McSweeney
+//	Tom Owen
+//	John Winchester
+//	Mitchel Sanders
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 1999-06 Mitchel Sanders Split the DataCenter interface out of
+//                         the IfRepository.idl.
+// 2000-12 Mitchel Sanders Updates for version 1.0
+//
+//********************************************************************
+
+#ifndef _IF_SEISMOGRAM_DC_IDL
+#define _IF_SEISMOGRAM_DC_IDL
+
+#include "Fissures.idl"
+#include "IfTimeSeries.idl"
+#include "IfNetwork.idl"
+#include "IfParameterMgr.idl"
+
+
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfSeismogramDC
+//********************************************************************
+module Fissures {
+
+  module IfSeismogramDC {
+
+    const string VERSION = "1.0";
+
+    /* ??????????????????????????????
+       define a DataCenter Component attaches all datacenter elements
+       ?????????????????*/
+	
+    //********************************************************************
+    //Import typedefs
+    //********************************************************************
+    typedef IfTimeSeries::TimeSeriesDataSel TimeSeriesDataSel;
+    typedef IfTimeSeries::LongSeq           LongSeq;
+    typedef IfTimeSeries::ShortSeq          ShortSeq;
+    typedef IfTimeSeries::FloatSeq           FloatSeq;
+    typedef IfTimeSeries::DoubleSeq           DoubleSeq;
+    typedef IfTimeSeries::EncodedSeq           EncodedSeq;
+    typedef IfNetwork::ChannelId ChannelId;
+    typedef IfNetwork::ChannelGroup ChannelGroup;
+    typedef IfNetwork::ChannelIdSeq ChannelIdSeq;
+    typedef IfParameterMgr::ParameterRef ParameterRef;
+
+
+    //********************************************************************
+    //Forward Declarations
+    //********************************************************************
+    interface DataCenterCallBack;
+
+    //********************************************************************
+    //Data Types
+    //********************************************************************
+    typedef string ServerRequestId;
+
+    typedef string SeismogramId;
+    typedef string MotionVectorId;
+
+    struct Property {
+      string name;
+      string value;
+    };
+    typedef sequence<Property> PropertySeq;
+
+    valuetype SeismogramAttr {
+      private  SeismogramId id;
+      public  PropertySeq properties;
+      public  Time begin_time;  //Always corrected
+      public  long num_points;   //creation set to 0
+      public  Sampling sampling_info;
+      public  Unit y_unit;  //always counts from DAS
+      public  ChannelId channel_id;
+      public  sequence<ParameterRef> parm_ids;
+      /** These last two items deal with time corrections.<br>
+	  the time adjustments that have been applied to the begin time. */
+      public  TimeIntervalSeq time_corrections;
+      /** Sampling rate changed that have been applied */
+      public  SamplingSeq sample_rate_history;
+
+      SeismogramId get_id();
+      };
+
+    typedef sequence<SeismogramAttr> SeismogramAttrSeq;
+
+    valuetype MotionVectorAttr {
+      private MotionVectorId id;
+      public  PropertySeq properties;
+      public  Time begin_time;
+      public  long num_points;
+      public  Sampling sampling_info;
+      public  Unit y_unit;
+      public  ChannelGroup channel_group;
+      public  sequence<ParameterRef> parm_ids;
+      /** These last two items deal with time corrections.<br>
+	  the time adjustments that have been applied to the begin time. */
+      public  TimeIntervalSeq time_corrections;
+      /** Sampling rate changed that have been applied */
+      public  SamplingSeq sample_rate_history;
+
+      MotionVectorId get_id();
+    };
+
+    valuetype LocalSeismogram :
+      SeismogramAttr
+    supports IfTimeSeries::TimeSeriesAccess,
+      IfTimeSeries::TimeSeriesAdmin
+    {
+      public TimeSeriesDataSel data;
+    };
+
+    typedef sequence<LocalSeismogram> LocalSeismogramSeq;
+
+    struct VectorComponent {
+      ChannelId channel;
+      TimeSeriesDataSel data;
+    };
+    typedef sequence<VectorComponent,3> VectorComponentSeq;
+
+    valuetype LocalMotionVector :
+      MotionVectorAttr
+    {
+      public VectorComponentSeq data;
+    };
+
+    typedef sequence<LocalMotionVector> LocalMotionVectorSeq;
+
+
+    struct RequestFilter {
+      ChannelId channel_id;
+      Time start_time;
+      Time end_time;
+    };
+
+    typedef sequence<RequestFilter> RequestFilterSeq;
+
+    struct GroupRequest {
+      ChannelGroup channels;
+      Time start_time;
+      Time end_time;
+    };
+
+    typedef sequence<GroupRequest> GroupRequestSeq;
+    
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+    typedef Fissures::ErrorCode ErrorCode;
+    typedef Fissures::Error Error;
+
+    const ErrorCode INVALID_REQUEST=2;
+    const ErrorCode SERVER_BUSY=3;
+
+    typedef string RequestStatus;
+    
+
+    //********************************************************************
+    //   DataCenter Interface
+    //********************************************************************
+    /**
+     * The data center provide for retrieval of seismograms from a
+     * data warehouse. Its provides for both asynchronous delivery
+     * where the clients makes and request and waits for the results.
+     * It also provides asynchronous access where a client makes a
+     * request and is later delivered the results or must return to
+     * check the status of the request and retrieve the results
+     */
+    interface DataCenter
+    {
+
+      RequestFilterSeq available_data(
+				      in RequestFilterSeq a_filterseq
+				      );
+
+      /** if long_lived is true then the request is "sticky" in that
+	  the client wants the data center to return not just the data 
+	  that it has in its archive currently, but also any data that it
+	  receives up to the  expiration_time. For instance if a station 
+	  sends its data by mailing tapes, then a researcher could issue
+	  a request for data that is expected to be delivered from a 
+	  recent earthquake, even thought the data center does not yet 
+	  have the data. Note that expiration_time is ignored if long_lived
+	  is false.*/
+      ServerRequestId request_seismograms(
+					  in RequestFilterSeq a_filterseq,
+					  in DataCenterCallBack a_client,
+					  in boolean long_lived,
+					  in Time expiration_time 
+					  ) raises (
+						    FissuresException
+						    );
+
+      LocalSeismogramSeq retrieve_seismograms(
+					      in RequestFilterSeq a_filterseq
+					      ) raises (
+							FissuresException
+							);
+
+      ServerRequestId queue_seismograms(
+					in RequestFilterSeq a_filterseq
+					) raises (
+						  FissuresException
+						  );
+
+
+      LocalSeismogramSeq retrieve_queue(
+					in ServerRequestId a_request
+					) raises (
+						  FissuresException
+						  );
+
+		
+      void cancel_request(
+			  in ServerRequestId a_request
+			  ) raises (
+				    FissuresException
+				    );
+
+      RequestStatus request_status(
+				   in ServerRequestId a_request
+				   ) raises (
+					     FissuresException
+					     );
+
+    };
+    
+    //********************************************************************
+    //   GroupingDataCenter Interface
+    //********************************************************************
+    /**
+     * A grouping data center will group seismogram data into motion
+     * vector groups. Motion vector grouping must come from the same
+     * site and have the same begin time, sample rate and number of
+     * points, ie they are the "3 components of motion".
+     */
+    interface GroupingDataCenter : DataCenter
+    {
+
+      ServerRequestId request_groups(
+				     in GroupRequestSeq a_filterseq,
+				     in DataCenterCallBack a_client
+				     ) raises (
+					       FissuresException
+					       );
+
+      LocalMotionVectorSeq retrieve_groups(
+					   in GroupRequestSeq a_filterseq
+					   ) raises (
+						     Fissures::FissuresException
+						     );
+
+      ServerRequestId queue_groups(
+				   in GroupRequestSeq a_filterseq
+				   ) raises (
+					     Fissures::FissuresException
+					     );
+
+
+      LocalMotionVectorSeq retrieve_group_queue(
+						in ServerRequestId a_request
+						) raises (
+							  Fissures::FissuresException
+							  );
+	
+    };
+    
+    //********************************************************************
+    //   DataCenterCallBack Interface
+    //********************************************************************
+    /**
+     * The DataCenterCallBack is the interface through which the
+     * data center will respond to client that have made
+     * asynchronous request.
+     */
+    interface DataCenterCallBack
+    {
+
+      void return_seismograms(
+                              in ServerRequestId the_request,
+                              in LocalSeismogramSeq seismograms
+			      );
+
+      void return_group(
+			in ServerRequestId the_request,
+			in LocalMotionVectorSeq seismograms
+			);
+
+      void return_error(
+			in ServerRequestId the_request,
+			in Error the_error,
+			in RequestFilterSeq filters
+			);
+
+      void finished(
+                    in ServerRequestId the_request
+		    );
+
+      void canceled(
+                    in ServerRequestId the_request
+                    );
+
+    };
+    
+    };
+  };
+
+#endif // _IF_SEISMOGRAM_DC_IDL
