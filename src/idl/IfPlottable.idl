@@ -1,0 +1,120 @@
+//File: IfPlottable.idl
+//
+//********************************************************************
+//	Developed by the Fissures Prototype team:
+//	Philip Crotwell
+//	Mitchel Sanders
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2001-02 Philip Crotwell   Created.
+//
+//********************************************************************
+
+#ifndef _IF_PLOTTABLE_IDL
+#define _IF_PLOTTABLE_IDL
+
+#include "Fissures.idl"
+#include "IfSeismogramDC.idl"
+#include "IfNetwork.idl"
+#include "IfEvent.idl"
+
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfPlottable
+//********************************************************************
+module Fissures {
+
+  module IfPlottable {
+
+    const string VERSION = "1.0";
+
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+
+    /** The Plottable is not available, for some reason. This may be
+	because the data is not local, or the server does not have the
+	Plottable cheched and will not generate it on the fly.*/
+    exception PlottableNotAvailable {
+    };
+
+    /** The plottable is not available because the server does not support
+	custom dimensions and this is not one of the dimensions it caches.
+    */
+    exception UnsupportedDimension {
+    };
+
+    //********************************************************************
+    //   PlottableDC Interface
+    //********************************************************************
+    interface PlottableDC 
+    {
+
+      /** Whether or not the PlottableDC can create custom dimensioned
+	  Plottables. Clients should be aware that even if the server is
+	  capable of custom dimensions, it may be faster to us the cached
+	  dimensions for events and whole day Plottables. */
+      boolean custom_sizes();
+
+      /** Gets a Plottable for a specific time window for a channel at the
+	  given size. Because of the extra overhead of handling custom 
+	  time ranges, this functionality is optional. */
+      PlottableSeq get_plottable(
+			      in IfSeismogramDC::RequestFilter request,
+			      in Dimension pixel_size
+			      ) raises (
+					PlottableNotAvailable,
+					UnsupportedDimension,
+					NotImplemented
+					);
+
+      /** Gets the sizes of cached plottables for a whole day of data. 
+	  A PlottableDC may be able
+	  to generate Plottables of arbitrary dimensions, but for 
+	  performance reasons may only cache certain dimensions. A client
+	  should use cached dimensions if possible. */
+      DimensionSeq get_whole_day_sizes();
+
+      /** Gets a Plottable for an entire day, for example for a helicorder
+	  display. For faster response, the client should use one of the
+	  cached dimensions. */
+      PlottableSeq get_for_day(
+			    in IfNetwork::ChannelId channel_id,
+			    in long year,
+			    in long jday,
+			    in Dimension pixel_size
+			    ) raises (
+				      PlottableNotAvailable,
+				      UnsupportedDimension
+				      );
+
+      /** Gets the sizes of cached plottables for an event's data. 
+	  A PlottableDC may be able
+	  to generate Plottables of arbitrary dimensions, but for 
+	  performance reasons may only cache certain dimensions. A client
+	  should use cached dimensions if possible. */
+      DimensionSeq get_event_sizes();
+
+      /** Gets a Plottable for a particular seismic event.
+	  For faster response, the client should use one of the
+	  cached dimensions. */
+      PlottableSeq get_for_event(
+			      in IfEvent::EventAccess event,
+			      in IfNetwork::ChannelId channel_id,
+			      in Dimension pixel_size
+			      ) raises (
+					PlottableNotAvailable,
+					UnsupportedDimension
+					);
+                                                      
+      };
+      
+    };
+  };
+
+#endif // _IF_PLOTTABLE_IDL

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<document>
+
+  <properties>
+    <author email="www@seis.sc.edu">Philip Crotwell</author>  
+    <title>Getting Involved</title>
+
+  </properties>
+
+  <body>        
+    <section name="Getting Involved">
+
+      <p>
+	We do not currently have a very formal system for being involved in 
+	FISSURES, or for submiting suggestions or code. Basically, if you
+	are interested, you should <a href="mail.html">subscribe</a> to the
+	mailing list, and post your suggestions there.
+      </p>
+      <p>
+	If you have a project that you are working on that is Fissures-friendly
+	and would like to let others know about it, send 
+	<a href="mailto:www@seis.sc.edu">me</a> an email and I will add it to
+	the list of related projects.
+      </p>
+    </section>
+  </body>
+</document>

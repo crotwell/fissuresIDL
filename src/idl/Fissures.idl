@@ -1,0 +1,356 @@
+//File: Fissures.idl
+//
+//********************************************************************
+//  Defines the terms for the FISSURES CORBA framework. This idl will
+//  be included in other idl files to provide reference to the
+//  standard data types.
+//
+//	Developed by the Fissures Prototype team:
+//	Philip Crotwell
+//	Paul Friberg
+//	Sid Hellman
+//	Tom McSweeney
+//	Tom Owen
+//	John Winchester
+//	Mitchel Sanders
+//
+//********************************************************************
+//
+//	Date		   By					     Description
+//  1999-05-19 Mitchel Sanders Split the Fissures.idl from the
+//				                     original prototype to add more
+//				                     modularity and structure to it. This
+//                             will better enable its modification
+//				                     and expansion
+//  1999-10    Mitchel Sanders Update to reflect Seismogram data
+//                             is retrieved from the DataCenter.
+//  2000-02    Mitchel Sanders Update to reflect division of
+//                             ownership of data elements to
+//                             managing interface.
+//  2000-09    Mitchel Sanders Updates for DataCenter pattern
+//  2000-12    Mitchel Sanders Updates for version 1.0
+//
+//
+//
+//********************************************************************
+
+#ifndef _FISSURES_IDL
+#define _FISSURES_IDL
+
+#pragma prefix "iris.edu"
+
+module Fissures {
+
+  const string VERSION = "1.0";
+
+  //********************************************************************
+  //	Common Terms
+  //********************************************************************
+
+  /** represents the orientation of a single component of a seismometer.
+   */
+  struct Orientation {
+    /** the angle in degrees from geographic north. */
+    float azimuth;
+    /** the angle in degrees down from horizontal. */
+    float dip;
+  };
+
+  /** The dimension in pixels of a display area. */
+  struct Dimension {
+    long width;
+    long height;
+  };
+
+  typedef sequence<Dimension> DimensionSeq;
+
+
+  //********************************************************************
+  //	Unit Terms
+  //********************************************************************
+
+  /** With  two exceptions, the Fissures units use SI base units.
+      These are METER, GRAM, SECOND, AMPERE, KELVIN, MOLE, CANDELA,
+      and COUNT. The two differences with SI are that gram is used
+      instead of kilogram, largely to make automatic name generation
+      easier, and the addition of count as a convenience. Also, COMPOSITE
+      has been added to signify that this is a composite unit as this field
+      cannot be null.
+  */
+  enum UnitBase {METER, GRAM, SECOND, AMPERE, KELVIN, MOLE, CANDELA,
+		 COUNT, COMPOSITE };
+
+  /** A unit of measurement, derived from SI base units by
+      multiplication of other units, prefixing of powers of ten,
+      raising to exponents and multiplication by constants. The only
+      shortcoming is the inability to define offsets for Celsius and
+      Fahrenheit. */
+  valuetype Unit {
+
+    /** The base, if a base unit, or COMPOSITE in not. */
+    public UnitBase the_unit_base;
+
+    /** The subunits if COMPOSITE, zero length array if not. */
+    public sequence<Unit> elements;
+
+    /** The power of ten to prefix. */
+    public long power;
+
+    /** A name for the unit, may be empty if the name should be
+	automatically generated. */
+    public string name;
+
+    /** A constant multiplier. */
+    public double multi_factor;
+
+    /** An exponent for the entire unit, ie Hertz would be SECOND with
+	an exponent of -1. */
+    public long exponent;
+
+  };
+
+  /** An array of units. */
+  typedef sequence<Unit> UnitSeq;
+
+  /** A range of values associated with units. */
+  valuetype UnitRange {
+    public Unit the_units;
+    public double min_value;
+    public double max_value;
+  };
+
+  //********************************************************************
+  //	Quantity Terms
+  //********************************************************************
+
+  /** Allows units to be associated with a value. */
+  valuetype Quantity {
+    public double value;
+    public Unit the_units;
+  };
+
+  /** A quantity that must be convertable to units of meters. */
+  typedef Quantity Length;
+
+  /** A quantity that must be convertable to units of seconds. */
+  typedef Quantity TimeInterval;
+  typedef sequence<TimeInterval> TimeIntervalSeq;
+
+  //********************************************************************
+  //	Location Terms
+  //********************************************************************
+
+  /** Whether the latitude is measured as distance in degrees along
+      the surface, GEOGRAPHIC, or as an angle from the center of the
+      earth. This is essentially a first order ellipticity correction.*/
+  enum LocationType {GEOGRAPHIC, GEOCENTRIC};
+
+  /** A location on or in the earth. */
+  struct Location {
+    /** The latitude measured in degrees. */
+    float latitude;
+
+    /** The longitude measured in degrees from the Grenwich meridian,
+	positive is east. */
+    float longitude;
+
+    /** The elevation above mean sea level of the surface of the earth
+	at/above this location. This may also a reference elevation
+	in conjunction with depth. */
+    Length elevation;
+
+    /** The depth below the given elevation. */
+    Length depth;
+
+    /** Type of location, geographic or geocentric. */
+    LocationType type;
+  };
+
+  typedef string ISODateTime;
+
+  /**
+     Time Terms.<br><br>
+
+     The Time.date_time string will be ISO8601:1998 standard.<br>
+     yyyy-mm-ddThh:mm:ss.ddddZTD or <br>
+     yyyy-mm-ddThhmmss.ddddZTD or <br>
+     yyyymmddThh:mm:ss.ddddZTD or <br>
+     yyyymmddThhmmss.ddddZTD or <br>
+     yyyyjjjThh:mm:ss.ddddZTD or<br>
+     yyyyjjjThhmmss.ddddZTD<br><br>
+     yyyy - year<br>
+     mm   - month<br>
+     jjj  - day of the year<br>
+     dd   - day<br>
+     T    - seperator<br>
+     hh   - hour<br>
+     mm   - minutes<br>
+     ss   - seconds<br>
+     .ddd - fractions of seconds to any precision desired.<br>
+     ZTD  - time zone. Z for UTC; +hh:mm or -hh:mm for time zone
+     difference from UTC.<br>
+  */
+  struct Time {
+    ISODateTime date_time;
+    long leap_seconds_version;
+  };
+  typedef sequence<Time> TimeSeq;
+
+
+  /** Represents a range of time, ie from 11:45:04.000 July 4, 1776 to
+      21:28:38.000 August 8, 2000. This differs from a TimeInterval,
+      which records for example an interval of 53 seconds,
+      but not which 53 seconds.
+  */
+  struct TimeRange {
+    Time start_time;
+    Time end_time;
+  };
+  typedef sequence<TimeRange> TimeRangeSeq;
+
+  struct ComplexNumber {
+    float real;
+    float imaginary;
+  };
+  typedef sequence<ComplexNumber> ComplexNumberSeq;
+
+  abstract valuetype Area {
+  };
+
+  /** The whole earth. */
+  valuetype GlobalArea : Area {
+  };
+
+  /** Represents a rectangular area */
+  valuetype BoxArea : Area {
+    public float min_latitude;
+    public float max_latitude;
+    public float min_longitude;
+    public float max_longitude;
+  };
+
+  valuetype PointDistanceArea : Area {
+    public float latitude;
+    public float longitude;
+
+    /** must be either angular or length */
+    public Quantity min_distance;
+
+    /** must be either angular or length */
+    public Quantity max_distance;
+  };
+
+  enum FlinnEngdahlType {SEISMIC_REGION, GEOGRAPHIC_REGION};
+
+  /** Holds the FlinnEngdahl Region. The convention is that number = 0 means
+      that the region is unknown. */
+  valuetype FlinnEngdahlRegion : Area {
+    public FlinnEngdahlType type;
+    public long number;
+  };
+
+  /** Holds a pixel-ated timeseries or any type of line to be plotted 
+      on a display. */
+  struct Plottable {
+    sequence<long> x_coor;
+    sequence<long> y_coor;
+  };
+
+  typedef sequence<Plottable> PlottableSeq;
+
+  /** Represents the rate of periodic recording of data. In order to
+      avoid the problems associated with division and roundoff, this
+      keeps the information in its original form. Both the number of
+      points and the time interval are stored. This does lead to
+      many equivalent ways of expressing the same value. For instance
+      20 samples per second could be given as 20 points in one second
+      or 1 sample in 0.05 seconds. However, using 30 samples in one second
+      is better than .333333...<P>
+      One should be careful to remember the n-1 rule. If there is a
+      seismogram with 21 samples where the first occurs at 12:00:00.000
+      and the last occurs at 12:00:01.000, the sampling is 20 samples in
+      one second, not 21 samples in one second!
+  */
+  valuetype Sampling {
+    public long numPoints;
+    public TimeInterval interval;
+  };
+  typedef sequence<Sampling> SamplingSeq;
+
+
+  /** Exception Terms */
+  typedef long ErrorCode;
+
+  const ErrorCode NOT_FOUND=2;
+  const ErrorCode ILLEGAL_PARM=3;
+  const ErrorCode ILLEGAL_ATTRIBUTE=4;
+
+  struct Error {
+    ErrorCode error_code;
+    string error_description;
+  };
+
+  /** The FissuresException is defined as a general exception to be
+      used only when a more specific exceptions do not exist for the
+      occuring exception.
+  */
+  exception FissuresException {
+    Error the_error;
+  };
+
+
+  /** Certain operations defined within the FISSURES framework are not
+      required for a service to be compliment. Such operations allow
+      the NotImplemented exception to be thrown.
+  */
+  exception NotImplemented {};
+
+  /**	Do provide a common Iterator operation a */
+  abstract interface FissuresIterator {
+    /** Returns the count of elements remain in the iterator */
+    long how_many();
+
+    /** Reset the iterator to the beginning of the element list */
+    void reset();
+
+    /** Destroy the iterator and drop all resources it holds */
+    void destroy();
+  };
+
+  //********************************************************************
+  //  Audit System Data Types and Interface
+  //********************************************************************
+
+  /** The information required for audit of operations */
+  struct AuditInfo {
+    string party;
+    string description;
+  };
+
+  /** Allows the AuditInfo to be optional */
+  typedef sequence<AuditInfo,1> AuditInfoOpt;
+
+  /** The audit item holds the time of the event in addition to the
+      audit info */
+  struct AuditElement {
+    Time time_occurred;
+    AuditInfo information;
+  };
+  typedef sequence<AuditElement> AuditTrail;
+
+
+  /** For auditable FISSURES objects represented by a CORBA interface
+      a abstract interface is defined to provide a common access
+      approach.
+  */
+  abstract interface AuditSystemAccess
+  {
+    AuditTrail get_audit_trail(
+		) raises (
+			  NotImplemented
+			  );
+
+  };
+
+  };
+#endif // _FISSURES_IDL

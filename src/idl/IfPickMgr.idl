@@ -1,0 +1,197 @@
+//File: IfPickMgr.idl
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updates for version 1.0
+//********************************************************************
+
+#ifndef _IF_PICK_MGR_IDL
+#define _IF_PICK_MGR_IDL
+
+#include "Fissures.idl"
+#include "IfSeismogramDC.idl"
+#include "IfNetwork.idl"
+#include "IfDataSetMgr.idl"
+
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfPickMgr
+//********************************************************************
+
+module Fissures {
+  module IfPickMgr {
+
+    const string VERSION = "1.0";
+
+    typedef IfSeismogramDC::SeismogramId SeismogramId;
+    typedef IfNetwork::SiteId SiteId;
+    typedef IfDataSetMgr::NodeId NodeId;
+
+    interface PickMgr;
+
+    //********************************************************************
+    //	Pick Terms
+    //********************************************************************
+    typedef string PickId;
+    typedef string FeatureId;
+    typedef string PickGroupName;
+    typedef string PickGroupId;
+
+    //??QualifiedPickId 
+
+    struct Pick {
+      PickId id;
+      string name;
+      Time time_when;
+      TimeInterval error_estimate;
+    };
+
+    typedef sequence<PickId> PickIdSeq;
+	
+    typedef sequence<Pick> PickSeq;
+
+    struct PickGroup {
+      PickGroupId id;
+      PickGroupName name;
+      PickSeq picks;
+    };
+
+    typedef sequence<PickGroup> PickGroupSeq;
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+    exception UnknownPick {
+      PickId id;
+    };
+
+    exception UnknownPickGroup {
+      PickGroupId id;
+    };
+
+    //********************************************************************
+    //   PickDC Interface
+    //********************************************************************
+    /**
+     * The Pick Datacenter provides read only access to a pick manager
+     */
+    interface PickDC {
+
+      readonly attribute PickMgr a_writeable;
+
+      PickSeq retrieve_picks_for_seismogram(
+					    in SeismogramId seismogram_id
+					    ) raises (
+						      FissuresException
+						      );
+
+      PickSeq retrieve_picks_for_site(
+				      in SiteId site_id,
+				      in TimeRange time_range
+				      ) raises (
+						FissuresException
+						);
+
+
+      PickGroupSeq retrieve_pick_group(
+				       in PickGroupId group_id
+				       ) raises (
+						 FissuresException
+						 );
+
+      PickGroupSeq retrieve_pick_group_by_name(
+					       in PickGroupName name
+					       ) raises (
+							 FissuresException
+							 );
+
+      PickGroupSeq get_pickgroups_for_dataset(
+					      in NodeId dataset
+					      ) raises (
+							FissuresException
+							);
+
+    };
+
+
+    //********************************************************************
+    //   PickManager Interface
+    //********************************************************************
+    /**
+     * The Pick manager is the full access interface into the manager.
+     */
+    interface PickMgr : PickDC {
+
+      void add_pick(
+		    in SeismogramId seismogram_id,
+		    in Pick a_pick,
+		    in AuditInfoOpt audit_info
+		    ) raises (
+			      FissuresException
+			      );
+
+      void add_to_pick_group(
+			     in PickGroupId group_id,
+			     in PickId a_pick,
+			     in AuditInfoOpt audit_info
+			     ) raises (
+				       UnknownPick,
+				       UnknownPickGroup
+				       );
+
+      void update_pick(
+		       in Pick new_pick_data,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 FissuresException
+				 );
+
+      void delete_pick(
+		       in PickId pick_id,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 FissuresException
+				 );
+
+      void remove_pick_from_group(
+				  in PickGroupId group_id,
+				  in PickId pick_id,
+				  in AuditInfoOpt audit_info
+				  ) raises (
+					    FissuresException
+					    );
+
+      void remove_pick_group(
+			     in PickGroupId group_id,
+			     in AuditInfoOpt audit_info
+			     ) raises (
+				       FissuresException
+				       );
+
+      PickGroupId create_pick_group(
+				    in PickGroupName group_name,
+				    in AuditInfoOpt audit_info
+				    );
+
+      PickGroupId make_pick_group(
+				  in PickGroup pick_group,
+				  in AuditInfoOpt audit_info
+				  );
+
+      void associate_pickgroup_to_dataset(
+					  in NodeId dataset,
+					  in PickGroupId group_id,
+					  in AuditInfoOpt audit_info
+					  ) raises (
+						    FissuresException
+						    );
+
+    };
+
+    };
+  };
+
+#endif //_IF_PICK_MGR_IDL

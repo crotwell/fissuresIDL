@@ -1,0 +1,47 @@
+//File: IfConstants.idl
+
+#ifndef _IF_CONSTANTS_IDL
+#define _IF_CONSTANTS_IDL
+
+#include "IfEvent.idl"
+#include "IfNetwork.idl"
+#include "IfParameterMgr.idl"
+
+#pragma prefix "iris.edu"
+
+/**
+ * This file contains the constants for the FISSURES framework. By
+ * seperating the constants into a seperate file the can change
+ * without effecting the framework.
+ */
+module Fissures {
+
+  const ISODateTime TIME_UNKNOWN="edu.iris.Fissures/Time/UNKNOWN";
+
+  /** Magnitude Types */
+  const IfEvent::MagType MB_MAG_TYPE="edu.iris.Fissures/MagType/mb";
+  const IfEvent::MagType MS_MAG_TYPE="edu.iris.Fissures/MagType/Ms";
+  const IfEvent::MagType MW_MAG_TYPE="edu.iris.Fissures/MagType/MW";
+  const IfEvent::MagType MO_MAG_TYPE="edu.iris.Fissures/MagType/MO";
+  const IfEvent::MagType ML_MAG_TYPE="edu.iris.Fissures/MagType/ML";
+  const IfEvent::MagType LG_MAG_TYPE="edu.iris.Fissures/MagType/LG";
+  const IfEvent::MagType MBMLE_MAG_TYPE="edu.iris.Fissures/MagType/mbmle";
+  const IfEvent::MagType MSMLE_MAG_TYPE="edu.iris.Fissures/MagType/msmle";
+
+  /*Clock types */
+  const IfNetwork::ClockType OMEGA_CLOCK = "edu.iris.Fissures/clock/Omega";
+  const IfNetwork::ClockType GOES_CLOCK = "edu.iris.Fissures/clock/GOES";
+  const IfNetwork::ClockType GPS_CLOCK = "edu.iris.Fissures/clock/GPS";
+  const IfNetwork::ClockType INTERNAL_CLOCK = "edu.iris.Fissures/clock/Internal";
+  const IfNetwork::ClockType NTP_CLOCK = "edu.iris.Fissures/clock/NTP";
+  const IfNetwork::ClockType UNKNOWN_CLOCK = "edu.iris.Fissures/clock/unknown";
+
+
+  /** Origin Properties/Parameters */
+  const IfParameterMgr::ParameterName ORIGIN_TYPE="...";
+
+
+};
+#endif // _IF_CONSTANTS_IDL
+
+

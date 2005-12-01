@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<document>
+
+  <properties>
+    <author email="www@seis.sc.edu">Philip Crotwell</author>  
+                <title>Fissures Bug Reporting</title>
+  </properties>
+
+    <body>        
+              <section name="Bug Reporting">
+
+<p>
+If you find bugs, or would like to submit a request for enhancement, you
+should post them to the fissures-dev email list.
+	General discussions should also take place via the 
+	fissures-dev@iris.washington.edu email list. This is a majordomo email 
+	list that you should subscribe to. Send an email 
+	to <a href="mailto:fissures-dev@iris.washington.edu">
+	  majordomo@iris.washington.edu</a> with
+</p>
+<p>
+
+              subscribe fissures-dev<br/>
+              end<br/>
+</p>
+<p>
+              in the body</p>
+      <p>
+          Please remember that if you send an email to fissures-dev, 
+          it goes to <b>everyone</b> on the list. So if you are trying to
+          subscribe or unsubscribe you should send the email to
+          <a href="mailto:majordomo@iris.washington.edu">
+	majordomo@iris.washington.edu</a> instead.
+      </p>
+
+
+</section>
+</body>
+</document>
+
+
+
+
+
+
+
+
+

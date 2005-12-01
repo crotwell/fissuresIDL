@@ -1,0 +1,20 @@
+
+// exists only to allow Orbacus documentation generator to find all files.
+
+#include "CosEventChannelAdmin.idl"
+#include "CosEventComm.idl"
+#include "Fissures.idl"
+#include "IfConstants.idl"
+#include "IfDataSetMgr.idl"
+#include "IfEvent.idl"
+#include "IfFilter.idl"
+#include "IfNetwork.idl"
+#include "IfParameterMgr.idl"
+#include "IfPickMgr.idl"
+#include "IfRealTimeCollector.idl"
+#include "IfSeismogramDC.idl"
+#include "IfSeismogramMgr.idl"
+#include "IfService.idl"
+#include "IfTimeSeries.idl"
+#include "IfTravelTimeCalculator.idl"
+

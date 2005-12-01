@@ -1,0 +1,355 @@
+//File: ISeismogramMgr.idl
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updated for version 1.0
+//********************************************************************
+
+#ifndef _IF_SEISMOGRAM_MGR_IDL
+#define _IF_SEISMOGRAM_MGR_IDL
+
+#include "Fissures.idl"
+#include "IfTimeSeries.idl"
+#include "IfSeismogramDC.idl"
+#include "IfNetwork.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module SeismogramMgr 
+//********************************************************************
+
+module Fissures {
+  module IfSeismogramMgr {
+
+    const string VERSION = "1.0";
+
+    //********************************************************************
+    // Typdefs
+    //********************************************************************
+    typedef IfTimeSeries::TimeSeriesAccess	TimeSeriesAccess;
+    typedef IfTimeSeries::TimeSeriesAdmin	TimeSeriesAdmin;
+    typedef IfTimeSeries::TimeSeriesDataSel TimeSeriesDataSel;
+    typedef IfTimeSeries::LongSeq           LongSeq;
+    typedef IfTimeSeries::ShortSeq          ShortSeq;
+    typedef IfTimeSeries::FloatSeq          FloatSeq;
+    typedef IfTimeSeries::DoubleSeq         DoubleSeq;
+    typedef IfTimeSeries::EncodedData	EncodedData;
+    typedef sequence<EncodedData>	        EncodedDataSeq;
+    typedef IfSeismogramDC::MotionVectorAttr MotionVectorAttr;
+    typedef IfNetwork::ChannelIdSeq ChannelIdSeq;
+
+
+
+    //********************************************************************
+    // Forward Reference
+    //********************************************************************
+    interface SeismogramFactory;
+    interface SeismogramFinder;
+    interface SeismogramAccess;
+    interface Seismogram;
+
+    typedef sequence<SeismogramFactory> SeismogramFactorySeq;
+    typedef sequence<SeismogramAccess> SeismogramAccessSeq;
+    typedef sequence<Seismogram> SeismogramSeq;
+
+
+    typedef string MirrorId;
+
+    /** MirrorFilter elements will allow for wildcard characters
+	? for a single character, and * for 0 or more characters
+    */
+    struct MirrorFilter {
+      string network_name;
+      string station_name;
+      string site_id;
+      string channel_code;
+    };
+
+    typedef sequence<MirrorFilter> MirrorFilterSeq;
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+    typedef Fissures::ErrorCode ErrorCode;
+
+    const ErrorCode NOT_FOUND=2;
+    const ErrorCode ILLEGAL_ATTRIBUTE=3;
+    const ErrorCode WRONG_DATA_TYPE=4;
+
+    valuetype RemoteMotionVector : MotionVectorAttr {
+      public SeismogramSeq seismograms;
+    };
+
+    exception NotMirroring {};
+
+    exception UnknownChannel {};
+
+    exception UnknownMirrorId {};
+
+
+    //********************************************************************
+    //   SeismogramComponent  Interface
+    //********************************************************************
+    /**
+     * The SeismogramComponent interface is the entry point into the
+     * Seismogram Manager
+     */
+    interface SeismogramComponent {
+      readonly attribute SeismogramFinder a_finder;
+      readonly attribute SeismogramFactory a_factory;
+    };
+	
+    //********************************************************************
+    //   SeismogramFinder Interface
+    //********************************************************************
+    /**
+     * The Finder interface contains the operation for location a
+     * seismogram
+     */
+    interface SeismogramFinder  :
+      SeismogramComponent	
+    {
+		
+      SeismogramAccessSeq find_seismograms(
+					   in IfSeismogramDC::RequestFilterSeq a_request
+					   ) raises (
+						     Fissures::FissuresException
+						     );
+
+      RemoteMotionVector find_group(
+				    in IfSeismogramDC::GroupRequestSeq a_request
+				    ) raises (
+					      Fissures::FissuresException
+					      );
+
+    };
+
+
+    //********************************************************************
+    //   SeismogramFactory  Interface
+    //********************************************************************
+    /**
+     * The factory interface provides the operations to create new
+     * seismograms
+     */
+    interface SeismogramFactory
+    {
+		
+      long active_seismogram_count();
+
+      Seismogram create(
+			in IfSeismogramDC::SeismogramAttr the_attributes,
+			in AuditInfoOpt audit_info
+			) raises (
+				  Fissures::FissuresException
+				  );
+
+      Seismogram create_from_value(
+				   in IfSeismogramDC::LocalSeismogram a_seismogram,
+				   in AuditInfoOpt audit_info
+				   ) raises (
+					     Fissures::FissuresException
+					     );
+
+      SeismogramSeq create_from_values(
+				       in IfSeismogramDC::LocalMotionVector a_seismogram,
+				       in AuditInfoOpt audit_info
+				       ) raises (
+						 Fissures::FissuresException
+						 );
+
+      Seismogram create_from_ref(
+				 in Seismogram a_seismogram,
+				 in AuditInfoOpt audit_info
+				 ) raises (
+					   Fissures::FissuresException
+					   );
+
+    };
+
+
+
+    //********************************************************************
+    //   SesimogramAccess Interface
+    //********************************************************************
+    /**
+     * This interface provides read only access to a seismogram
+     */
+    interface SeismogramAccess : 
+      SeismogramComponent,
+      TimeSeriesAccess
+    {
+      readonly attribute Seismogram a_writeable;
+
+      /** Defines the ParameterMgr where parameters for this DataSet
+	  reside */
+      readonly attribute IfParameterMgr::ParameterComponent parm_svc;
+
+      IfSeismogramDC::SeismogramAttr get_attributes();
+
+      LongSeq get_range_as_longs(
+				 in TimeInterval time_range
+				 ) raises (
+					   Fissures::FissuresException
+					   );
+		
+      ShortSeq get_range_as_shorts(
+				   in TimeInterval time_range
+				   ) raises (
+					     Fissures::FissuresException
+					     );		
+		
+      FloatSeq get_range_as_floats(
+				   in TimeInterval time_range
+				   ) raises (
+					     Fissures::FissuresException
+					     );
+
+      DoubleSeq get_range_as_doubles(
+				     in TimeInterval time_range
+				     ) raises (
+					       Fissures::FissuresException
+					       );	
+		
+      EncodedDataSeq get_range_as_encoded(
+					  in TimeInterval time_range
+					  ) raises (
+						    Fissures::FissuresException
+						    );	
+
+    };
+
+    //********************************************************************
+    //   Seismogram Interface
+    //********************************************************************
+    /**
+     * Seismogram - provides full access to a Seismogram
+     */
+    interface Seismogram :
+      SeismogramAccess, TimeSeriesAdmin
+    {
+
+      /** process the know time corrections for a seismogram */
+      void process_time_corrections(
+				    in AuditInfoOpt audit_info
+				    ) raises (
+					      NotImplemented
+					      );
+
+      /** Update the attributes for the seismogram */
+      void set_attributes(
+			  in IfSeismogramDC::SeismogramAttr the_attributes,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    Fissures::FissuresException
+				    );
+
+      /** Remove the seismogram from this Seismogram service.
+       *  This does not destroy the seismogram in the total FISSURES
+       *  context but only this service instance.
+       */
+      void destroy();
+
+    };
+
+    //********************************************************************
+    //   ChannelMirrorAdmin Interface
+    //********************************************************************
+    /**
+     * ChannelMirrorAdmin - provides a means to administer the mirroring
+     * functionality of this seismogram manager.
+     */
+    interface ChannelMirrorAdmin {
+
+      /** Determine the number of active mirror registrations */
+      long active_seismogram_mirrors();
+
+      /** Retrieve the Seismograms that are being mirrored to a remote
+	  server */
+      SeismogramSeq get_mirrored_seismograms();
+
+      /** Retrieve the SeismogramFactories registered to be mirrored */
+      SeismogramFactorySeq get_factory_mirrors();
+
+      /** Stop mirroring to the specified mirrors */
+      void stop_mirrors(
+			in SeismogramFactorySeq mirrors
+			);
+
+      /** Stop all the mirroring process */
+      void stop_mirroring();
+
+      /** Restart the process to mirrot seismograms */
+      void resume_mirroring();
+
+      /** Is the service current mirroring */
+      boolean is_mirroring();
+    };
+
+    //********************************************************************
+    //   MirrorFactory Interface
+    //********************************************************************
+    /**
+     * MirrorFactory - remote clients will provide this interface to
+     * enable the the mirroring service to mirror to the client and
+     * inform the client that mirroring has been halted.
+     */
+    interface MirrorFactory {
+      readonly attribute SeismogramFactory a_factory;
+
+      /** If the Mirroring service stops mirroring the client will
+       * receive this operation. The unregistered will tell the client
+       * whether or not its registrations is sill active and may be
+       * restarted or not
+       */
+      void mirroring_stopped(
+			     in MirrorId a_id,
+			     /** if true the registration has been removed, the mirror must
+				 reregister */
+			     in boolean unregistered
+			     );
+
+    };
+
+    //********************************************************************
+    //   ChannelMirrorRegistry Interface
+    //********************************************************************
+    /**
+     * ChannelMirrorRegistry - used by a client to register to mirror
+     * seismograms for specific channels
+     */
+    interface ChannelMirrorRegistry {
+
+
+      /**
+       * Register for a set of channels. The MirrorId allows a client
+       * to maintain and manage multiple registrations.
+       */
+      MirrorId register(
+			in MirrorFactory a_mirror,
+			in ChannelIdSeq filter
+			) raises (
+				  UnknownChannel,
+				  NotMirroring
+				  );
+
+      /** Unregister a client */
+      void unregister(
+		      in MirrorId a_mirror
+		      ) raises (
+				UnknownMirrorId
+				);
+
+      /** Retrieve the channels that the service will allow to be mirrored */
+      ChannelIdSeq get_mirrorable_channels();
+
+    };
+
+
+    };
+
+  };
+
+#endif // _IF_SEISMOGRAM_MGR_IDL
