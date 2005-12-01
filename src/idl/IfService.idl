@@ -1,0 +1,120 @@
+//File: IfService.idl : Verion 1.0 Date 6/99
+
+//********************************************************************
+//	Provides for dynamic configuration of Fissrues services. The 
+//	configuration options will be discovered at run time and
+//  configured for an client's request.
+//
+//	All operations which are affected by the configuration should have
+//	a in parameter for the ConfigurationId; These ids will be short
+//  lived and are not expected to be maintained by the service for
+//  long periods.
+//
+//	A standard string of "DEFAULT" will be used for the default 
+//	configuration.
+//
+//
+//	Developed by the Fissures Prototype team: 
+//	Philip Crotwell
+//	Mitchel Sanders
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 1999-05 Mitchel Sanders Created as a generalized means of
+//									       configuring Fissures services.
+// 2000-12 Mitchel Sanders Updated for version 1.0
+//********************************************************************
+
+#ifndef _IF_SERVICE_IDL
+#define _IF_SERVICE_IDL 
+
+#pragma prefix "iris.edu"
+
+module Fissures {
+  module IfService {
+
+    const string VERSION = "1.0";
+
+
+    //********************************************************************
+    //   Service Terms
+    //********************************************************************
+
+    struct ServiceOption {
+      string name;
+      string description;
+      string type; // tk_kind?
+      sequence<string> allowed_values;
+    };
+
+    typedef sequence<ServiceOption> ServiceOptionSeq;
+
+    struct ServiceSetting {
+      string name;
+      any value;
+    };
+
+    typedef sequence<ServiceSetting> ServiceConfiguration;
+
+    typedef string ConfigurationId;
+
+    const ConfigurationId DEFAULT_CONFIG = "DEFAULT"; 
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+
+    exception UnknownOption {
+      sequence<string> option_name;
+    };	
+
+    exception InvalidValue {
+      ServiceConfiguration bad_values;
+    };
+
+    exception UnknownConfiguration {
+      ConfigurationId config_id;
+    };
+
+    //********************************************************************
+    // Abstract Service Interface
+    //********************************************************************
+    /**
+     * Abstract interface for configuration of analysis services
+     */
+    abstract interface Service {
+		
+      ServiceOptionSeq get_configuration_options (
+		);
+
+      ServiceConfiguration get_default_configuration(
+		);
+
+      ServiceConfiguration get_configuration(
+					     in ConfigurationId config_id
+					     ) raises (
+						       UnknownConfiguration
+						       );
+
+      ServiceSetting get_setting_for(
+				     in string name
+				     ) raises (
+					       UnknownOption
+					       );
+
+      ConfigurationId set_configuration(
+					in ServiceConfiguration settings
+					) raises (
+						  UnknownOption,
+						  InvalidValue
+						  );
+
+      ConfigurationId reset_to_default(
+		);
+	
+    };
+				
+  };
+};
+#endif // _IF_SERVICE_IDL

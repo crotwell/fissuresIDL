@@ -1,0 +1,209 @@
+//File: IfTimeSeries.idl 
+//********************************************************************
+//	Developed by the Fissures Prototype team:
+//	Philip Crotwell
+//	Paul Friberg
+//	Sid Hellman
+//	Tom McSweeney
+//	Tom Owen
+//	John Winchester
+//	Mitchel Sanders
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 1999-06 Mitchel Sanders Split the DataCenter interface out of
+//                         the IfRepository.idl.
+// 2000-12 Mitchel Sanders Updated for version 1.0
+//********************************************************************
+
+#ifndef _IF_TIMESERIES_IDL
+#define _IF_TIMESERIES_IDL
+
+#include "Fissures.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfTimeSeries
+//********************************************************************
+
+module Fissures {
+  module IfTimeSeries {
+
+    const string VERSION = "1.0";
+
+    //********************************************************************
+    //   Data Types 
+    //********************************************************************
+
+    const ErrorCode ILLEGAL_CONVERSION=7;
+
+    //	typedef short EncodingFormat;
+    //	const EncodingFormat STEIM1=10;
+    //	const EncodingFormat STEIM2=11;
+
+
+    struct EncodedData {
+      short compression;
+      sequence<octet> values;
+      long num_points;
+      /** Follow OMG standard
+       *  FALSE = big endian format -
+       *   most significant bit first - 68000/Sparc order
+       *  TRUE  = little endian format -
+       *   least significant bit first - 8086 order
+       */
+
+      boolean byte_order;
+      };
+
+    struct ComplexNumber {
+      float real_part;
+      float imaginary_part;
+    }; 
+    typedef sequence<ComplexNumber> ComplexNumberSeq;
+
+    enum TimeSeriesType {TYPE_SHORT, TYPE_LONG, TYPE_FLOAT,
+			 TYPE_DOUBLE, TYPE_ENCODED};
+
+
+    union TimeSeriesDataSel switch (TimeSeriesType) {
+    case TYPE_SHORT: sequence<short> sht_values;
+    case TYPE_LONG: sequence<long> int_values;
+    case TYPE_FLOAT: sequence<float> flt_values;
+    case TYPE_DOUBLE: sequence<double> dbl_values;
+    case TYPE_ENCODED: sequence<EncodedData> encoded_values;
+    };
+
+    typedef sequence<TimeSeriesDataSel> TimeSeriesDataSelSeq;
+
+    typedef sequence<short> ShortSeq;
+    typedef sequence<long> LongSeq;
+    typedef sequence<float> FloatSeq;
+    typedef sequence<double> DoubleSeq;
+    typedef sequence<EncodedData> EncodedSeq;
+
+    exception SequenceOutOfOrder {
+      long last_valid_seq_num;
+    };
+
+    //********************************************************************
+    //   TimeSeries (ABSTRACT)
+    //********************************************************************
+    abstract interface TimeSeriesAccess :
+    AuditSystemAccess
+    {
+		
+      boolean is_closed();
+
+      boolean is_long();
+
+      boolean is_float();
+
+      boolean is_double();
+
+      boolean is_short();
+
+      boolean is_encoded();
+
+      boolean can_convert_to_long();
+
+      boolean can_convert_to_float();
+
+      boolean can_convert_to_double();
+
+      boolean can_convert_to_short();
+
+	
+      LongSeq get_as_longs(
+		) raises (
+			  Fissures::FissuresException
+			  );
+		
+      ShortSeq get_as_shorts(
+		) raises (
+			  Fissures::FissuresException
+			  );
+      FloatSeq get_as_floats(
+		) raises (
+			  Fissures::FissuresException
+			  );
+
+      DoubleSeq get_as_doubles(
+		) raises (
+			  Fissures::FissuresException
+			  );
+		
+      EncodedSeq get_as_encoded(
+		) raises (
+			  Fissures::FissuresException
+			  );
+
+
+    };
+
+    //********************************************************************
+    //   TimeSeries (ABSTRACT)
+    //********************************************************************
+    abstract interface TimeSeriesAdmin {
+
+      void close();
+
+      /**
+       * Clients must resend failed calls with the same data for the
+       * same sequence number until successful.
+       */
+      void append_longs(
+			in long seq_num,
+			in LongSeq data,
+			in AuditInfoOpt audit_info
+			) raises (
+				  SequenceOutOfOrder
+				  );
+
+      void append_shorts(
+			 in long seq_num,
+			 in ShortSeq data,
+			 in AuditInfoOpt audit_info
+			 ) raises (
+				   SequenceOutOfOrder
+				   );
+
+      void append_floats(
+			 in long seq_num,
+			 in FloatSeq data,
+			 in AuditInfoOpt audit_info
+			 ) raises (
+				   SequenceOutOfOrder
+				   );
+
+      void append_doubles(
+			  in long seq_num,
+			  in DoubleSeq data,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    SequenceOutOfOrder
+				    );
+
+      void append_encoded_seq(
+			      in long seq_num,
+			      in EncodedSeq data,
+			      in AuditInfoOpt audit_info
+			      ) raises (
+					SequenceOutOfOrder
+					);
+
+      void append_encoded(
+			  in long seq_num,
+			  in EncodedData data,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    SequenceOutOfOrder
+				    );
+
+      };
+    };
+  };
+
+#endif // _IF_TIMESERIES_IDL

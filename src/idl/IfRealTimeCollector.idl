@@ -1,0 +1,209 @@
+//File: IfRealTimeCollector.idl
+//
+//********************************************************************
+// Date		 By					     Description
+//********************************************************************
+// 2000-12 Mitchel Sanders new
+//********************************************************************
+
+#ifndef _IF_REAL_TIME_COLLECTOR_IDL
+#define _IF_REAL_TIME_COLLECTOR_IDL
+
+#include "IfNetwork.idl"
+#include "IfTimeSeries.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfRealTimeCollector
+//********************************************************************
+module Fissures {
+  module IfRealTimeCollector {
+
+    const string VERSION = "1.0";
+
+    interface RealTimeCollector;
+    typedef sequence<RealTimeCollector> RealTimeCollectorSeq;
+
+    typedef sequence<string> CollectorStringRefSeq;
+    typedef sequence<string> SohStringRefSeq;
+
+    typedef IfNetwork::ChannelId ChannelId;
+    typedef IfNetwork::ChannelIdSeq ChannelIdSeq;
+    typedef IfTimeSeries::TimeSeriesDataSel TimeSeriesDataSel;
+    typedef IfTimeSeries::LongSeq LongSeq;
+
+
+    struct DasError {
+      string error_num;
+      string error_msg;
+    };
+
+    /** The simplest self-contained representation of data recorded. The 
+        units of the data are COUNTs. */ 
+    struct DataChunk {
+      long seq_num;
+      ChannelId channel;
+      Time   begin_time;
+      TimeSeriesDataSel data;
+      Time  end_time;
+    };
+    typedef sequence<DataChunk> DataChunkSeq;
+
+    struct  CollectorConfiguration {
+      ChannelId a_channel;
+      Sampling sampling_info;
+    };
+    typedef sequence<CollectorConfiguration>  CollectorConfigurationSeq;
+
+    //********************************************************************
+    //   Exceptions
+    //********************************************************************
+    exception  ChunkOutOfOrder {
+      // both must be same length
+      LongSeq last_valid_seq_num;
+      ChannelIdSeq channels;
+    };
+
+    exception UnknownChannels {
+      ChannelIdSeq channels;
+    };
+
+    exception CollectorMaxExceeded {
+      long max;
+    };
+
+    //********************************************************************
+    //   RealTimeCollector Interface
+    //********************************************************************
+    /**
+     * The real time collector is an interface to accepts raw data from
+     * data acquisition system. Implementation of this interface would
+     * act as either store and forward proxies or seismogram creation
+     * system.
+     * Seismogram creation implementation would connect to
+     * one or more Seismogram factories and create new seismogram then
+     * append data to them. These implementation would have the
+     * knowledge of how to partition raw data into seperate seismograms
+     */
+    interface RealTimeCollector {
+
+      void configure(
+		     in CollectorConfigurationSeq a_configuration
+		     );
+
+      /** Adds data to the collector. If any exception occurs, the client should
+	  assume that no data was successfully sent. It should attempt to 
+	  correct the errors before resending the data.
+      */
+      void add_data(
+		    in DataChunkSeq data
+		    ) raises (
+			      UnknownChannels,
+			      ChunkOutOfOrder
+			      );
+
+      /**Collector would reset his sequence counter and most likely close the old
+	 seismogram and start a new one.
+	 Sequences must be the same length. */
+      void reset_sequence(
+			  in ChannelIdSeq channels,
+			  in LongSeq next_valid
+			  ) raises (
+				    UnknownChannels
+				    );
+
+      /** Allows the DAS the send cached data seperate from real time data. 
+	  This allows most recent data to be processed first and older data 
+	  to be send through a seperate collector. It is the decision of 
+	  the DAS as to which collector gets the real time
+	  data and which gets the older data.
+      */
+      RealTimeCollector get_collector(
+    ) raises (
+	      NotImplemented
+	      );
+
+      /** Once all history data is send the Collector is useless. No more 
+	  data will be sent through it. It can be destroyed.
+      */
+      void destroy();
+
+    };
+
+    //********************************************************************
+    //   DasSoh Interface
+    //********************************************************************
+    /**
+     * This state of health interface is designed for data acquisistion
+     * system to call when they have errors. This would be setup in the
+     * data acquisition system using the DasConfig interface
+     */
+    interface DasSoh {
+
+      void soh_event(
+		     in string das_id,
+		     in DasError error
+		     );
+
+    };
+
+    //********************************************************************
+    //   DasConfig Interface
+    //********************************************************************
+    /**
+     * This is the configuration interface for data acquisistion devices
+     * This provides a standard interface for remote management of
+     * das devices.
+     */
+    interface DasConfig {
+
+      /**
+       * Sets the collectors that this data acquisition device is to
+       * send data to. The das developer may allow more than one
+       * collector. If the maximum allowed is exceeded by the call the
+       * CollectorMaxExceeded is called
+       */
+      void set_collector_by_ref(
+				in RealTimeCollectorSeq collectors
+				) raises (
+					  CollectorMaxExceeded
+					  );
+
+      void set_collector_by_string(
+				   in CollectorStringRefSeq collectors
+				   ) raises (
+					     CollectorMaxExceeded
+					     );
+
+      void add_collector_by_ref(
+				in RealTimeCollectorSeq collectors
+				) raises (
+					  CollectorMaxExceeded
+					  );
+
+      void add_collector_by_string(
+				   in CollectorStringRefSeq collectors
+				   ) raises (
+					     CollectorMaxExceeded
+					     );
+
+      void set_soh_by_ref(
+			  in DasSoh das_id
+			  ) raises (
+				    NotImplemented
+				    );
+
+      void set_soh_by_string(
+			     in SohStringRefSeq das_ref
+			     ) raises (
+				       NotImplemented
+				       );
+
+    };
+    };
+  };
+
+#endif //_IF_REAL_TIME_COLLECTOR_IDL
+
+

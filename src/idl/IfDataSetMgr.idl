@@ -1,0 +1,298 @@
+//File: IfDataSetMgr.idl
+//
+//********************************************************************
+//	Date		By					   Description
+//********************************************************************
+// 2000-12 Mitchel Sanders Updates for version 1.0
+//********************************************************************
+
+
+#ifndef _IF_DATASET_MGR_IDL
+#define _IF_DATASET_MGR_IDL
+
+#include "Fissures.idl"
+#include "IfSeismogramMgr.idl"
+#include "IfSeismogramDC.idl"
+#include "IfParameterMgr.idl"
+
+#pragma prefix "iris.edu"
+
+//********************************************************************
+//   Module IfDataSetMgr
+//********************************************************************
+
+module Fissures {
+
+  /**
+   * The DataSetMgr provides a means for local users to organize
+   * seismograms into meaning grouping similiar to a file directory
+   * structure.
+   */
+  module IfDataSetMgr {
+
+    const string VERSION = "1.0";
+
+    typedef IfParameterMgr::ParameterRef ParameterRef;
+
+    /**
+     * DataSet may contain other DataSet (much like file directories can
+     * contain other file directories). The contained Directories may be
+     * remote DataSets. DataSet is abstract as it may be remote, and an 
+     interface, or local, and a valuetype.
+     */
+    abstract interface DataSet;
+    abstract interface DataSetAccess;
+
+    typedef sequence<DataSet> DataSetSeq;
+    typedef sequence<DataSetAccess> DataSetAccessSeq;
+
+    interface DataSetFinder;
+    interface DataSetFactory;
+    interface RemoteDataSet;
+    interface RemoteDataSetAccess;
+
+    valuetype LocalDataSet;
+
+    //********************************************************************
+    //  	DataSet
+    //********************************************************************
+    /** Provides a unique identification for a node with in a service
+     *  implementation. The NodeId must be unque for every node within
+     *  the implementation.
+     */
+    typedef string NodeId;
+
+    /** Defines the attributes of a DataSet. The more important element
+     *  here is that a user can attach parameters to a DataSet.
+     */
+    struct DataSetAttr {
+      NodeId id;
+      string name;
+      string owner;
+      sequence<ParameterRef> parm_ids;
+    };
+
+
+    /**
+     *  DataSet may contain MotionVectors. A MotionVector is a group of
+     *  Seismogram with the same begin time, sample rate and number of
+     *  points. It will typically represent a set of seismograms from
+     *  given site for 2 to 3 different directions of motion.
+     */
+    valuetype MotionVectorNode {
+      private NodeId id;
+      NodeId get_id();
+      public sequence<IfSeismogramMgr::SeismogramAccess,3> seismograms;
+      public sequence<ParameterRef> parm_ids;
+    };
+    typedef sequence<MotionVectorNode> MotionVectorNodeSeq;
+
+    /**
+     * A DataSet may contain seismograms
+     */
+    valuetype SeismogramNode {
+      private NodeId id;
+      NodeId get_id();
+      public IfSeismogramMgr::SeismogramAccess a_seismogram;
+    };
+    typedef sequence<SeismogramNode> SeismogramNodeSeq;
+
+
+    //********************************************************************
+    //  Exceptions
+    //********************************************************************
+
+    exception NotFound {};
+    exception NotADataSet {};
+    exception NotADataSetNode {};
+
+    //********************************************************************
+    //  DataSetComponent Interface
+    //********************************************************************
+
+    /**
+     * A DataSetComponent provides the entry point the service.
+     */
+    interface DataSetComponent
+    {
+      readonly attribute DataSetFinder a_finder;
+      readonly attribute DataSetFactory a_factory;
+
+    };
+
+    //********************************************************************
+    //  DataSet Interface
+    //********************************************************************
+    /**
+     * The DataSetFinder provides operations to locate DataSet
+     */
+    interface DataSetFinder : DataSetComponent
+    {
+
+      DataSetAccess find_by_id(
+			 in NodeId id
+			 ) raises (
+				   NotFound,
+				   NotADataSetNode
+				   );
+
+      DataSetAccessSeq find_by_name(
+			      in string a_name
+			      ) raises (
+					FissuresException
+					);
+
+      DataSetAccessSeq find_by_owner(
+			       in string owner
+			       ) raises (
+					 FissuresException
+					 );
+
+    };
+	
+    //********************************************************************
+    //  DataSet Interface
+    //********************************************************************
+    interface DataSetFactory : DataSetComponent
+    {
+
+      DataSetAccess create(
+		     in DataSetAttr attr,
+		     in AuditInfoOpt audit_info
+		     );
+
+      DataSetAccess copy(
+		   in DataSet a_dataset,
+		   in AuditInfoOpt audit_info
+		   );
+
+      void destroy_node(
+			in NodeId a_node,
+			in AuditInfoOpt audit_info
+			) raises (
+				  NotFound
+				  );
+
+    };
+
+    //********************************************************************
+    //  DataSetAccess Interface
+    //********************************************************************
+    abstract interface DataSetAccess :
+      AuditSystemAccess
+    {
+      /** Navigation to a reference that allows updates */
+      readonly attribute DataSet a_writeable;
+
+      /** Defines the ParameterMgr where parameters for this DataSet
+	  reside */
+      readonly attribute IfParameterMgr::ParameterComponent parm_svc;
+
+      /** Retrieve a local copy of this dataset*/
+      LocalDataSet localize();
+
+      /** Retrieve the attributes */
+      DataSetAttr get_attributes();
+
+      /** Retrieve the dataset that are children of this dataset */
+      DataSetAccessSeq get_datasets();
+
+      /** Retrieve the motion vectors that are children of this dataset.
+       */
+      MotionVectorNodeSeq get_motion_vectors();
+
+      /** Retrieve the seismograms that are children of this dataset */
+      SeismogramNodeSeq get_seismograms();
+
+      };
+
+    // ********************************************************************
+    //  DataSet Interface
+    // ********************************************************************
+    abstract interface DataSet :
+      DataSetAccess
+    {
+
+      /** Delete this DataSet from the service presistent storage. Also,
+       *  for all MotionVector or Seismogram children that are not
+       *  children of any other DataSet delete them from the service
+       *  presistent store.
+       */
+      void destroy();
+
+      /** Update the attributes of the dataset */
+      void update_dataset(
+			  in DataSetAttr dataset_attr,
+			  in AuditInfoOpt audit_info
+			  ) raises (
+				    FissuresException
+				    );
+
+      /** Add a child dataset */
+      void add_dataset(
+		       in DataSetAccess a_dataset,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 NotFound,
+				 NotADataSet
+				 );
+
+      /** Add a child motion vector */
+      NodeId add_motion_vector(
+			       in MotionVectorNode a_motion_vector,
+			       in AuditInfoOpt audit_info
+			       ) raises (
+					 FissuresException
+					 );
+
+      /** Add a child motion seismogram */
+      NodeId add_seismogram(
+			    in IfSeismogramMgr::SeismogramAccess a_seismogram,
+			    in AuditInfoOpt audit_info
+			    ) raises (
+				      FissuresException
+				      );
+
+      /** Remove a node from the DataSet. If the Node is a MotionVector
+       * or Seismogram and not a child of any other DataSet delete it
+       * from the service presistent store.
+       */
+      void remove_node(
+		       in NodeId a_node,
+		       in AuditInfoOpt audit_info
+		       ) raises (
+				 FissuresException
+				 );
+
+
+      };
+
+    /** An interface for remote data sets. Access implies that it is read only.
+    */
+    interface RemoteDataSetAccess : DataSetAccess, DataSetComponent {
+    };
+
+    /** An interface into remote datasets that are read/write. */
+    interface RemoteDataSet : DataSet, RemoteDataSetAccess, DataSetComponent {
+    };
+
+    /**
+     *  A local, ie in process, DataSet. LocalDataSets can also contain
+     LocalSeismograms and MotionVectors. LocalDataSets are also always
+     writable, as they are local copies anyway.
+     */
+    valuetype LocalDataSet supports DataSet {
+      public DataSetAttr attributes;
+      public sequence<DataSetAccess> datasets;
+      public SeismogramNodeSeq seismograms;
+      public MotionVectorNodeSeq motion_vectors;
+      public IfSeismogramDC::LocalSeismogramSeq local_seis;
+      public IfSeismogramDC::LocalMotionVectorSeq local_motion;
+      private Fissures::AuditTrail audit_trail;
+    };
+
+
+    };
+  };
+
+#endif //_IF_DATASET_MGR_IDL
