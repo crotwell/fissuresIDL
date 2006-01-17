@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
+<?xml version="1.0"?>
 <project>
   <pomVersion>3</pomVersion>
   <name>fissuresIDL</name>
@@ -9,7 +8,6 @@
     <url>http://www.iris.edu</url>
     <logo>http://www.iris.washington.edu/gifs/IRISlogo9.99_small.gif</logo>
   </organization>
-
   <currentVersion>1.0</currentVersion>
   <inceptionYear>1999</inceptionYear>
   <package>edu.iris.Fissures</package>
@@ -24,18 +22,15 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
   <siteDirectory>/Library/WebServer/software/${pom.artifactId}</siteDirectory>
   <distributionSite>www.seis.sc.edu</distributionSite>
   <distributionDirectory>/Library/WebServer/software/mavenRepository</distributionDirectory>
-
   <repository>
         <url>http://roo.seis.sc.edu/fisheye/viewrep/CVS/seis/fissures/IDL</url>
     </repository>
-
   <mailingLists>
     <name>fissures-dev</name>
     <subscribe>majordomo@iris.washington.edu</subscribe>
     <unsubscribe>majordomo@iris.washington.edu</unsubscribe>
-    <archive></archive>
+    <archive/>
   </mailingLists>
-
   <developers>
     <developer>
       <name>Philip Crotwell</name>
@@ -47,7 +42,6 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
       </roles>
     </developer>
   </developers>
-
   <dependencies>
         <dependency>
             <groupId>JacORB</groupId>
@@ -93,11 +87,9 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
       <url>http://jakarta.apache.org/log4j/docs/index.html</url>
     </dependency>
   </dependencies>
-   
   <build>
     <nagEmailAddress>crotwell@seis.sc.edu</nagEmailAddress>
     <unitTestSourceDirectory>test</unitTestSourceDirectory>
-
     <!-- Unit test cases -->
     <unitTest>
       <includes>
@@ -109,6 +101,4 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
     </unitTest>
     <sourceDirectory>src/java</sourceDirectory>
   </build>
-
 </project>
-
