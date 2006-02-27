@@ -23,7 +23,7 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
   <distributionSite>www.seis.sc.edu</distributionSite>
   <distributionDirectory>/Library/WebServer/software/mavenRepository</distributionDirectory>
   <repository>
-        <url>http://roo.seis.sc.edu/fisheye/viewrep/~br=trunk/seis/trunk/fissuresIDL</url>
+        <url>http://roo.seis.sc.edu/fisheye/viewrep/seis/trunk/fissuresIDL</url>
     </repository>
   <mailingLists>
     <name>fissures-dev</name>
