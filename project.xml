@@ -66,7 +66,7 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
         </dependency>
     <dependency>
       <id>junit</id>
-      <version>3.8</version>
+      <version>3.8.1</version>
       <type>test</type>
       <url>http://junit.org/</url>
     </dependency>
