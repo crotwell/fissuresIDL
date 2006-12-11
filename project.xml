@@ -46,7 +46,7 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
         <dependency>
             <groupId>JacORB</groupId>
             <artifactId>JacORB</artifactId>
-            <version>2.2.3</version>
+            <version>cvs20061211</version>
             <url>http://www.jacorb.org</url>
         </dependency>
         <dependency>
