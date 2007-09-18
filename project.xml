@@ -72,7 +72,7 @@ The goal of the FISSURES Project is to provide a framework for seismology softwa
     </dependency>
     <dependency>
       <id>log4j</id>
-      <version>1.2.8</version>
+      <version>1.2.15</version>
       <url>http://logging.apache.org/log4j/docs/</url>
     </dependency>
   </dependencies>
