@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path=""/>
+	<classpathentry kind="src" path="src/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path=""/>
+	<classpathentry exported="true" kind="var" path="MAVEN_REPO/JacORB/jars/JacORB-2.3.0.jar" sourcepath="/JACORB_SRC"/>
+	<classpathentry exported="true" kind="var" path="MAVEN_REPO/JacORB/jars/avalon-framework-4.1.5.jar"/>
+	<classpathentry exported="true" kind="var" path="MAVEN_REPO/JacORB/jars/backport-util-concurrent-JacORB-2.3.jar"/>
+	<classpathentry exported="true" kind="var" path="MAVEN_REPO/JacORB/jars/concurrent-1.3.2.jar"/>
+	<classpathentry exported="true" kind="var" path="MAVEN_REPO/JacORB/jars/logkit-1.2.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
