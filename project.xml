@@ -8,7 +8,7 @@
     <url>http://www.iris.edu</url>
     <logo>http://www.iris.washington.edu/gifs/IRISlogo9.99_small.gif</logo>
   </organization>
-  <currentVersion>1.0</currentVersion>
+  <currentVersion>1.0_getset</currentVersion>
   <inceptionYear>1999</inceptionYear>
   <package>edu.iris.Fissures</package>
   <shortDescription>FISSURES Java code from IDL.</shortDescription>
