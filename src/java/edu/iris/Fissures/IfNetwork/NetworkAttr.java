@@ -148,33 +148,33 @@ public abstract class NetworkAttr implements org.omg.CORBA.portable.StreamableVa
     }
 
     // hibernate
-    protected NetworkId getId() {
+    public NetworkId getId() {
         return get_id();
     }
 
-    protected void setId(NetworkId netId) {
+    public void setId(NetworkId netId) {
         this.id = netId;
         setBeginTime(netId.begin_time);
     }
 
-    protected void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
 
-    protected void setOwner(String owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 
-    protected void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    protected Time getBeginTime() {
+    public Time getBeginTime() {
         return get_id().begin_time;
     }
     
-    protected void setBeginTime(Time beginTime) {
+    public void setBeginTime(Time beginTime) {
         if (getEffectiveTime() == null) {
             setEffectiveTime(new TimeRange());
         }
@@ -182,11 +182,11 @@ public abstract class NetworkAttr implements org.omg.CORBA.portable.StreamableVa
         get_id().begin_time = beginTime;
     }
     
-    protected Time getEndTime() {
+    public Time getEndTime() {
         return getEffectiveTime().end_time;
     }
     
-    protected void setEndTime(Time endTime) {
+    public void setEndTime(Time endTime) {
         if (getEffectiveTime() == null) {
             setEffectiveTime(new TimeRange());
         }

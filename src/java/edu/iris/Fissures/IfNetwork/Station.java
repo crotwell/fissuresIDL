@@ -231,7 +231,7 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
         this.name = name;
     }
 
-    protected void setLocation(Location loc) {
+    public void setLocation(Location loc) {
         this.my_location = loc;
     }
 
@@ -239,15 +239,15 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
         this.effective_time = eff;
     }
 
-    protected void setOperator(String operator) {
+    public void setOperator(String operator) {
         this.operator = operator;
     }
 
-    protected void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    protected void setComment(String comment) {
+    public void setComment(String comment) {
         this.comment = comment;
     }
 
@@ -263,7 +263,7 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
         return get_id().begin_time;
     }
     
-    protected void setBeginTime(Time beginTime) {
+    public void setBeginTime(Time beginTime) {
         if (getEffectiveTime() == null) {
             setEffectiveTime(new TimeRange());
         }
