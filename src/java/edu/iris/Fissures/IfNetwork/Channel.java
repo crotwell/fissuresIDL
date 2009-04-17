@@ -198,7 +198,7 @@ public abstract class Channel implements org.omg.CORBA.portable.StreamableValue
         this.getEffectiveTime().end_time = endTime;
     }
     
-    protected void setSite(Site site) {
+    public void setSite(Site site) {
         this.my_site = site;
     }
 // hibernate
@@ -220,16 +220,16 @@ public abstract class Channel implements org.omg.CORBA.portable.StreamableValue
             id.begin_time = getEffectiveTime().start_time;
         }
     }
-    protected void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
-    protected void setOrientation(Orientation orientation) {
+    public void setOrientation(Orientation orientation) {
         this.an_orientation = orientation;
     }
-    protected void setSamplingInfo(Sampling sampling_info) {
+    public void setSamplingInfo(Sampling sampling_info) {
         this.sampling_info = sampling_info;
     }
-    protected void setEffectiveTime(TimeRange eff) {
+    public void setEffectiveTime(TimeRange eff) {
         this.effective_time = eff;
     }
 }
