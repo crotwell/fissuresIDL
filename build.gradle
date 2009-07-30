@@ -1,10 +1,10 @@
 
 dependencies {
     compile group: 'org.jacorb', name: 'jacorb', version: '2.3.1', transitive: false
+    compile group: 'org.jacorb', name: 'backport-util-concurrent', version: '2.3.1', transitive: false
 /*
     compile group: 'log4j', name: 'log4j', version: '1.2.15', transitive: false
     compile group: 'JacORB', name: 'avalon-framework', version: '4.1.5', transitive: false
-    compile group: 'JacORB', name: 'backport-util-concurrent', version: 'JacORB-2.3', transitive: false
     compile group: 'JacORB', name: 'logkit', version: '1.2', transitive: false
 */
 }
