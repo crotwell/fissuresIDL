@@ -210,8 +210,6 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
         }
     }
 
-    private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(Station.class);
-
     private static Map<String, WeakReference<Station>> knownStations = Collections.synchronizedMap(new HashMap<String, WeakReference<Station>>());
 
     protected void setId(StationId id) {
