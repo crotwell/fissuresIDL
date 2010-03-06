@@ -194,6 +194,14 @@ public abstract class NetworkAttr implements org.omg.CORBA.portable.StreamableVa
         this.getEffectiveTime().start_time = get_id().begin_time;
     }
     
+    public static String intern(String s) {
+        if (s != null) {
+            return s.intern();
+        } else {
+            return "".intern();
+        }
+    }
+    
     public static NetworkAttr intern(NetworkAttr attr) {
         synchronized(knownTimes) {
             String key = attr.getId().network_code+attr.getId().begin_time.date_time;
@@ -204,9 +212,9 @@ public abstract class NetworkAttr implements org.omg.CORBA.portable.StreamableVa
             }
             if(interned == null) {
                 knownNetworks.put(key, new WeakReference<NetworkAttr>(attr));
-                attr.setDescription(attr.getDescription().intern());
-                attr.setName(attr.getName().intern());
-                attr.setOwner(attr.getOwner().intern());
+                attr.setDescription(intern(attr.getDescription()));
+                attr.setName(intern(attr.getName()));
+                attr.setOwner(intern(attr.getOwner()));
                 intern(attr.get_id());
                 return attr;
             }
@@ -214,9 +222,10 @@ public abstract class NetworkAttr implements org.omg.CORBA.portable.StreamableVa
         }
     }
 
-    public static void intern(NetworkId id) {
+    public static NetworkId intern(NetworkId id) {
         id.begin_time = intern(id.begin_time);
         id.network_code = id.network_code.intern();
+        return id;
     }
     
     public static TimeRange intern(TimeRange effective_time) {
