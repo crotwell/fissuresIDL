@@ -178,8 +178,8 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
     }
 
     public static void intern(StationId id) {
-        NetworkAttr.intern(id.network_id);
-        id.station_code = id.station_code.intern();
+        id.network_id = NetworkAttr.intern(id.network_id);
+        id.station_code = NetworkAttr.intern(id.station_code);
         id.begin_time = NetworkAttr.intern(id.begin_time);
     }
 
@@ -199,10 +199,10 @@ public abstract class Station implements org.omg.CORBA.portable.StreamableValue 
                 intern(station.getId());
                 station.setNetworkAttr(NetworkAttr.intern(station.getNetworkAttr()));
                 station.getId().network_id = station.getNetworkAttr().getId();
-                station.setName(station.getName().intern());
-                station.setDescription(station.getDescription().intern());
-                station.setOperator(station.getOperator().intern());
-                station.setComment(station.getComment().intern());
+                station.setName(NetworkAttr.intern(station.getName()));
+                station.setDescription(NetworkAttr.intern(station.getDescription()));
+                station.setOperator(NetworkAttr.intern(station.getOperator()));
+                station.setComment(NetworkAttr.intern(station.getComment()));
                 station.setEffectiveTime(NetworkAttr.intern(station.getEffectiveTime()));
                 return station;
             }
