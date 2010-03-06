@@ -160,15 +160,15 @@ public abstract class Channel implements org.omg.CORBA.portable.StreamableValue
         intern(channel.get_id());
         channel.setSite(Site.intern(channel.getSite()));
         NetworkAttr.intern(channel.getEffectiveTime());
-        channel.setName(channel.getName().intern());
+        channel.setName(NetworkAttr.intern(channel.getName()));
         return channel;
     }
 
     private static void intern(ChannelId id) {
-        id.channel_code = id.channel_code.intern();
-        NetworkAttr.intern(id.network_id);
-        id.station_code = id.station_code.intern();
-        id.site_code = id.site_code.intern();
+        id.channel_code = NetworkAttr.intern(id.channel_code);
+        id.network_id = NetworkAttr.intern(id.network_id);
+        id.station_code = NetworkAttr.intern(id.station_code);
+        id.site_code = NetworkAttr.intern(id.site_code);
         id.begin_time = NetworkAttr.intern(id.begin_time);
     }
 

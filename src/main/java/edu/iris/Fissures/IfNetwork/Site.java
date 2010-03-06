@@ -145,9 +145,9 @@ public abstract class Site implements org.omg.CORBA.portable.StreamableValue
 
 
     public static void intern(SiteId id) {
-        NetworkAttr.intern(id.network_id);
-        id.station_code = id.station_code.intern();
-        id.site_code = id.site_code.intern();
+        id.network_id = NetworkAttr.intern(id.network_id);
+        id.station_code = NetworkAttr.intern(id.station_code);
+        id.site_code = NetworkAttr.intern(id.site_code);
         id.begin_time = NetworkAttr.intern(id.begin_time);
     }
 
@@ -166,7 +166,7 @@ public abstract class Site implements org.omg.CORBA.portable.StreamableValue
             if(interned == null) {
                 knownSites.put(key, new WeakReference<Site>(site));
                 intern(site.get_id());
-                site.comment = site.comment.intern();
+                site.comment = NetworkAttr.intern(site.comment);
                 site.setStation(Station.intern(site.getStation()));
                 site.getId().network_id = site.getStation().getNetworkAttr().getId();
                 site.effective_time = NetworkAttr.intern(site.effective_time);
