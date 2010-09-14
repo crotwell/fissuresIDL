@@ -4,7 +4,7 @@ dependencies {
     compile group: 'org.jacorb', name: 'backport-util-concurrent', version: '2.3.1', transitive: false
     compile "org.slf4j:slf4j-api:1.5.8"
     runtime group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.5.8', transitive: false
-    compile "log4jUSC:log4j:1.2.15"
+    compile "log4j:log4j:1.2.16"
 }
 
 
