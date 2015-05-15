@@ -9,7 +9,7 @@ dependencies {
 
 
 group = 'edu.sc.seis'
-version = '1.0_getset_p2-SNAPSHOT'
+version = '1.0_getset_p2'
 
 def binDistFiles = copySpec {
     from('build/output') {
