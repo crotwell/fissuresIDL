@@ -79,7 +79,7 @@ public abstract class Origin implements org.omg.CORBA.portable.StreamableValue
     //
     // IDL:iris.edu/Fissures/IfEvent/Origin/get_id:1.0
     //
-    /** @returns the id of this origin. The id is intended to be
+    /** @return the id of this origin. The id is intended to be
      *a read-only immutible attribute of an Origin.*/
 
     public abstract String

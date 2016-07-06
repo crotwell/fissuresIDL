@@ -62,4 +62,6 @@ final public class Time implements org.omg.CORBA.portable.IDLEntity
 
     public String date_time;
     public int leap_seconds_version;
+    
+    public String toString() {return date_time;}
 }
